@@ -14,6 +14,8 @@ RUN pnpm build
 
 FROM node:24-slim AS runtime
 ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 WORKDIR /app
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
