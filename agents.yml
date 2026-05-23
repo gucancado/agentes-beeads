@@ -1,0 +1,7 @@
+# Registry de agentes da plataforma Semente.
+# Cada entrada vira card na home da console.
+# enabled=false oculta o agente sem deletar a entrada (útil pra pause).
+agents:
+  - name: mercurio
+    repo: gucancado/agente-mercurio
+    enabled: true
