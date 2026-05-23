@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test --import tsx tests/**/*.test.ts",
+    "test:watch": "node --test --watch --import tsx tests/**/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -25,6 +27,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
+    "tsx": "^4.22.3",
     "typescript": "^5"
   }
 }
