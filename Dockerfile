@@ -6,6 +6,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM node:24-slim AS build
 WORKDIR /app
+ENV NODE_OPTIONS=--max-old-space-size=2048
 RUN npm install -g pnpm@10
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
