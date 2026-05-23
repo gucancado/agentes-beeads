@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseAgentsYaml, getEnabledAgents } from '../../src/lib/registry.js';
+import { parseAgentsYaml, getEnabledAgents } from '../../src/lib/registry';
 
 test('parseAgentsYaml lê 1 agente enabled', () => {
   const yaml = `
