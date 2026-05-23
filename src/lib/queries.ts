@@ -1,0 +1,231 @@
+export type AgentHomeStats = {
+  agent: string;
+  msgsIn24h: number;
+  msgsOut24h: number;
+  cost24h: number;
+  errorRate: number;
+};
+
+export type ProjectSummary = {
+  project: string;
+  msgsIn24h: number;
+  msgsOut24h: number;
+  cost24h: number;
+  lastMessageAt: string | null;
+};
+
+export type AgentDetailStats = {
+  totals: { msgsIn7d: number; msgsOut7d: number; cost7d: number };
+  projects: ProjectSummary[];
+};
+
+export type ProjectStats = {
+  msgsIn24h: number;
+  msgsOut24h: number;
+  msgsIn7d: number;
+  msgsOut7d: number;
+  cost24h: number;
+  cost7d: number;
+  avgLatencyMs: number | null;
+  lastMessageAt: string | null;
+};
+
+export type CostPoint = { day: string; cost: number };
+export type TierBucket = { tier: string; count: number; cost: number };
+export type RecentMessage = {
+  id: number;
+  direction: 'inbound' | 'outbound';
+  identifier: string;
+  text: string;
+  createdAt: string;
+};
+
+type Querier = {
+  query: (sql: string, params?: unknown[]) => Promise<{ rows: unknown[] }>;
+};
+
+function num(v: unknown, fallback = 0): number {
+  if (v === null || v === undefined) return fallback;
+  const n = typeof v === 'number' ? v : parseFloat(String(v));
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function strOrNull(v: unknown): string | null {
+  return v === null || v === undefined ? null : String(v);
+}
+
+export async function getAgentHomeStats(pool: Querier, agents: string[]): Promise<AgentHomeStats[]> {
+  if (agents.length === 0) return [];
+  const { rows } = await pool.query(
+    `
+    WITH msg AS (
+      SELECT agent,
+             COUNT(*) FILTER (WHERE direction='inbound')  AS msgs_in_24h,
+             COUNT(*) FILTER (WHERE direction='outbound') AS msgs_out_24h,
+             COALESCE(SUM(cost_usd), 0) AS cost_24h
+      FROM messages
+      WHERE agent = ANY($1::text[])
+        AND created_at > NOW() - INTERVAL '1 day'
+      GROUP BY agent
+    ),
+    err AS (
+      SELECT agent,
+             COUNT(*) FILTER (WHERE error IS NOT NULL)::float
+               / NULLIF(COUNT(*),0)::float AS error_rate
+      FROM llm_metrics
+      WHERE agent = ANY($1::text[])
+        AND created_at > NOW() - INTERVAL '1 day'
+      GROUP BY agent
+    )
+    SELECT a.agent,
+           COALESCE(m.msgs_in_24h, 0)  AS msgs_in_24h,
+           COALESCE(m.msgs_out_24h, 0) AS msgs_out_24h,
+           COALESCE(m.cost_24h, 0)     AS cost_24h,
+           COALESCE(e.error_rate, 0)   AS error_rate
+    FROM unnest($1::text[]) AS a(agent)
+    LEFT JOIN msg m USING (agent)
+    LEFT JOIN err e USING (agent)
+    `,
+    [agents]
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    agent: String(r.agent),
+    msgsIn24h: num(r.msgs_in_24h),
+    msgsOut24h: num(r.msgs_out_24h),
+    cost24h: num(r.cost_24h),
+    errorRate: num(r.error_rate),
+  }));
+}
+
+export async function getAgentDetailStats(pool: Querier, agent: string): Promise<AgentDetailStats> {
+  const totalsResp = await pool.query(
+    `
+    SELECT COUNT(*) FILTER (WHERE direction='inbound')  AS msgs_in_7d,
+           COUNT(*) FILTER (WHERE direction='outbound') AS msgs_out_7d,
+           COALESCE(SUM(cost_usd), 0)                   AS cost_7d
+    FROM messages
+    WHERE agent = $1 AND created_at > NOW() - INTERVAL '7 days'
+    `,
+    [agent]
+  );
+  const tRow = (totalsResp.rows[0] ?? {}) as Record<string, unknown>;
+
+  const projResp = await pool.query(
+    `
+    SELECT project,
+           COUNT(*) FILTER (WHERE direction='inbound' AND created_at > NOW() - INTERVAL '1 day')  AS msgs_in_24h,
+           COUNT(*) FILTER (WHERE direction='outbound' AND created_at > NOW() - INTERVAL '1 day') AS msgs_out_24h,
+           COALESCE(SUM(cost_usd) FILTER (WHERE created_at > NOW() - INTERVAL '1 day'), 0) AS cost_24h,
+           MAX(created_at) AS last_message_at
+    FROM messages
+    WHERE agent = $1 AND project IS NOT NULL
+    GROUP BY project
+    ORDER BY last_message_at DESC NULLS LAST
+    `,
+    [agent]
+  );
+
+  return {
+    totals: {
+      msgsIn7d: num(tRow.msgs_in_7d),
+      msgsOut7d: num(tRow.msgs_out_7d),
+      cost7d: num(tRow.cost_7d),
+    },
+    projects: (projResp.rows as Record<string, unknown>[]).map((r) => ({
+      project: String(r.project),
+      msgsIn24h: num(r.msgs_in_24h),
+      msgsOut24h: num(r.msgs_out_24h),
+      cost24h: num(r.cost_24h),
+      lastMessageAt: strOrNull(r.last_message_at),
+    })),
+  };
+}
+
+export async function getProjectStats(pool: Querier, agent: string, project: string): Promise<ProjectStats> {
+  const { rows } = await pool.query(
+    `
+    SELECT COUNT(*) FILTER (WHERE direction='inbound'  AND created_at > NOW() - INTERVAL '1 day')  AS msgs_in_24h,
+           COUNT(*) FILTER (WHERE direction='outbound' AND created_at > NOW() - INTERVAL '1 day')  AS msgs_out_24h,
+           COUNT(*) FILTER (WHERE direction='inbound'  AND created_at > NOW() - INTERVAL '7 days') AS msgs_in_7d,
+           COUNT(*) FILTER (WHERE direction='outbound' AND created_at > NOW() - INTERVAL '7 days') AS msgs_out_7d,
+           COALESCE(SUM(cost_usd) FILTER (WHERE created_at > NOW() - INTERVAL '1 day'), 0)  AS cost_24h,
+           COALESCE(SUM(cost_usd) FILTER (WHERE created_at > NOW() - INTERVAL '7 days'), 0) AS cost_7d,
+           AVG(latency_ms) FILTER (WHERE direction='outbound' AND created_at > NOW() - INTERVAL '7 days') AS avg_latency_ms,
+           MAX(created_at) AS last_message_at
+    FROM messages
+    WHERE agent = $1 AND project = $2
+    `,
+    [agent, project]
+  );
+  const r = (rows[0] ?? {}) as Record<string, unknown>;
+  return {
+    msgsIn24h: num(r.msgs_in_24h),
+    msgsOut24h: num(r.msgs_out_24h),
+    msgsIn7d: num(r.msgs_in_7d),
+    msgsOut7d: num(r.msgs_out_7d),
+    cost24h: num(r.cost_24h),
+    cost7d: num(r.cost_7d),
+    avgLatencyMs: r.avg_latency_ms == null ? null : num(r.avg_latency_ms),
+    lastMessageAt: strOrNull(r.last_message_at),
+  };
+}
+
+export async function getCostTimeseries(pool: Querier, agent: string, days: number): Promise<CostPoint[]> {
+  const { rows } = await pool.query(
+    `
+    SELECT date_trunc('day', created_at)::date::text AS day,
+           COALESCE(SUM(cost_usd), 0) AS cost
+    FROM messages
+    WHERE agent = $1 AND created_at > NOW() - ($2 || ' days')::interval
+    GROUP BY day
+    ORDER BY day
+    `,
+    [agent, days]
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    day: String(r.day),
+    cost: num(r.cost),
+  }));
+}
+
+export async function getTierBreakdown(pool: Querier, agent: string, days: number): Promise<TierBucket[]> {
+  const { rows } = await pool.query(
+    `
+    SELECT COALESCE(tier, 'unknown') AS tier,
+           COUNT(*)                  AS count,
+           COALESCE(SUM(cost_usd), 0) AS cost
+    FROM messages
+    WHERE agent = $1
+      AND direction = 'outbound'
+      AND created_at > NOW() - ($2 || ' days')::interval
+    GROUP BY tier
+    ORDER BY count DESC
+    `,
+    [agent, days]
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    tier: String(r.tier),
+    count: num(r.count),
+    cost: num(r.cost),
+  }));
+}
+
+export async function getRecentMessages(pool: Querier, agent: string, project: string, limit: number): Promise<RecentMessage[]> {
+  const { rows } = await pool.query(
+    `
+    SELECT id, direction, identifier, text, created_at
+    FROM messages
+    WHERE agent = $1 AND project = $2
+    ORDER BY created_at DESC
+    LIMIT $3
+    `,
+    [agent, project, limit]
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    id: num(r.id),
+    direction: String(r.direction) as 'inbound' | 'outbound',
+    identifier: String(r.identifier),
+    text: String(r.text),
+    createdAt: String(r.created_at),
+  }));
+}
