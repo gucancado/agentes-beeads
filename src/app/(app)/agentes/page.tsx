@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { loadRegistry } from '@/lib/registry-server';
 import { getEnabledAgents } from '@/lib/registry';
+import { fetchAgentHomeStats } from '@/lib/stats-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function AgentesHome() {
+export default async function AgentesHome() {
   const registry = loadRegistry();
   const agents = getEnabledAgents(registry);
+  const stats = await fetchAgentHomeStats(agents.map((a) => a.name));
+  const byAgent = new Map(stats.map((s) => [s.agent, s]));
 
   return (
     <div>
@@ -17,23 +20,32 @@ export default function AgentesHome() {
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {agents.map((agent) => (
-            <Link key={agent.name} href={`/agentes/${agent.name}`}>
-              <Card className="transition hover:shadow-md">
-                <CardHeader>
-                  <CardTitle className="capitalize">{agent.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-600">
-                    <span className="text-slate-400">repo:</span> {agent.repo}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-400">
-                    Stats em breve (Sub-tarefa C).
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {agents.map((agent) => {
+            const s = byAgent.get(agent.name);
+            return (
+              <Link key={agent.name} href={`/agentes/${agent.name}`}>
+                <Card className="transition hover:shadow-md">
+                  <CardHeader>
+                    <CardTitle className="capitalize">{agent.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {s ? (
+                      <dl className="grid grid-cols-2 gap-y-1 text-sm">
+                        <dt className="text-slate-400">$ hoje</dt>
+                        <dd className="text-right text-slate-700">${s.cost24h.toFixed(4)}</dd>
+                        <dt className="text-slate-400">in / out 24h</dt>
+                        <dd className="text-right text-slate-700">{s.msgsIn24h} / {s.msgsOut24h}</dd>
+                        <dt className="text-slate-400">erros 24h</dt>
+                        <dd className="text-right text-slate-700">{(s.errorRate * 100).toFixed(1)}%</dd>
+                      </dl>
+                    ) : (
+                      <p className="text-sm text-slate-400">sem dados ainda</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
