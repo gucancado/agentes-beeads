@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { loadRegistry, invalidateRegistry } from '@/lib/registry-server';
 import { updateAgentModelsInYaml } from '@/lib/agents-yml-writer';
 import { findModel } from '@/lib/models-catalog';
+import { triggerSelfRedeploy } from '@/lib/coolify-deploy';
 
 const modelsInput = z.object({
   agent: z.string().min(1),
@@ -42,8 +43,15 @@ export async function updateAgentModelsAction(
     return { ok: false, error: (err as Error).message };
   }
 
+  // Dispara redeploy via Coolify API — não dependemos do webhook do GitHub
+  // (que às vezes não fired pra commits 'chore:' dependendo da config).
+  const redeploy = await triggerSelfRedeploy();
+
   invalidateRegistry();
   revalidatePath(`/agentes/${agent}`);
   revalidatePath(`/agentes/${agent}/projetos/[slug]`, 'page');
-  return { ok: true };
+  return {
+    ok: true,
+    error: redeploy.ok ? undefined : `commit ok, mas redeploy falhou: ${redeploy.error}`,
+  };
 }

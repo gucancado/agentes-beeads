@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { loadRegistry } from '@/lib/registry-server';
 import { saveProjectMd } from '@/lib/project-md';
+import { saveAgentProjectConfig } from '@/lib/agent-project-config';
 
 export async function saveBriefingAction(
   _prev: { ok: boolean; error?: string } | null,
