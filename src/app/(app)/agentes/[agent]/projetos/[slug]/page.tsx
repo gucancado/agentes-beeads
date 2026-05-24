@@ -4,10 +4,12 @@ import { loadRegistry } from '@/lib/registry-server';
 import { resolveProjectIdentity } from '@/lib/registry';
 import { fetchProjectStats, fetchRecentMessages } from '@/lib/stats-service';
 import { loadProjectFromAgentRepo } from '@/lib/project-md';
+import { loadAgentProjectConfig } from '@/lib/agent-project-config';
 import { StatCard } from '@/components/stat-card';
 import { SectionCard } from '@/components/section-card';
 import { ModelsCard } from '@/components/models-card';
 import { BriefingForm } from './briefing-form';
+import { QuietHoursForm } from './quiet-hours-form';
 
 function timeAgo(iso: string | null): string {
   if (!iso) return '—';
@@ -36,10 +38,11 @@ export default async function ProjectDetail({
   const found = registry.agents.find((a) => a.name === agent && a.enabled);
   if (!found) notFound();
 
-  const [stats, recent, { workspace, projectMd }] = await Promise.all([
+  const [stats, recent, { workspace, projectMd }, quietConfig] = await Promise.all([
     fetchProjectStats(agent, slug),
     fetchRecentMessages(agent, slug, 20),
     loadProjectFromAgentRepo({ agent, githubRepo: found.repo, slug }),
+    loadAgentProjectConfig(agent, slug),
   ]);
 
   const identity = resolveProjectIdentity(found, slug, workspace);
@@ -121,6 +124,21 @@ export default async function ProjectDetail({
           ) : (
             <BriefingForm agent={agent} slug={slug} initialContent={projectMd} />
           )}
+        </SectionCard>
+
+        <SectionCard
+          title="Quiet hours ·"
+          titleAccent="anti-detecção"
+          meta={quietConfig.quiet_hours_enabled ? 'ativo' : 'desligado'}
+        >
+          <QuietHoursForm
+            agent={agent}
+            slug={slug}
+            initialEnabled={quietConfig.quiet_hours_enabled}
+            initialStart={quietConfig.quiet_start}
+            initialEnd={quietConfig.quiet_end}
+            initialTz={quietConfig.quiet_tz}
+          />
         </SectionCard>
 
         {/* mensagens — só aparece aqui se NÃO for 3xl (ultra-wide); em wide, vão pra coluna direita */}

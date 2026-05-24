@@ -17,14 +17,21 @@ const DEFAULT_CONFIG: Omit<AgentProjectConfig, 'agent' | 'project'> = {
   quiet_tz: 'America/Sao_Paulo',
 };
 
+function useMock(): boolean {
+  return process.env.USE_MOCK_STATS === 'true';
+}
+
 /**
  * Lê config de (agent, project). Se não existe row, devolve defaults SEM
  * persistir. A persistência acontece no primeiro PATCH/upsert vindo da GUI.
+ *
+ * Em dev (USE_MOCK_STATS=true), devolve defaults sem tocar no DB.
  */
 export async function loadAgentProjectConfig(
   agent: string,
   project: string,
 ): Promise<AgentProjectConfig> {
+  if (useMock()) return { agent, project, ...DEFAULT_CONFIG };
   const pool = getPool();
   const { rows } = await pool.query<AgentProjectConfig>(
     `SELECT agent, project, quiet_hours_enabled,
@@ -51,6 +58,16 @@ export async function saveAgentProjectConfig(args: {
   quiet_end?: string;
   quiet_tz?: string;
 }): Promise<AgentProjectConfig> {
+  if (useMock()) {
+    return {
+      agent: args.agent,
+      project: args.project,
+      quiet_hours_enabled: args.quiet_hours_enabled ?? DEFAULT_CONFIG.quiet_hours_enabled,
+      quiet_start: args.quiet_start ?? DEFAULT_CONFIG.quiet_start,
+      quiet_end: args.quiet_end ?? DEFAULT_CONFIG.quiet_end,
+      quiet_tz: args.quiet_tz ?? DEFAULT_CONFIG.quiet_tz,
+    };
+  }
   const pool = getPool();
   const { rows } = await pool.query<AgentProjectConfig>(
     `INSERT INTO agent_project_config

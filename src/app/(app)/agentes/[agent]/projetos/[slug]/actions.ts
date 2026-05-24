@@ -33,3 +33,38 @@ export async function saveBriefingAction(
   revalidatePath(`/agentes/${agent}/projetos/${slug}`);
   return { ok: true };
 }
+
+export async function saveQuietHoursAction(
+  _prev: { ok: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  const agent = String(formData.get('agent') ?? '');
+  const slug = String(formData.get('slug') ?? '');
+  const enabled = formData.get('enabled') === 'on';
+  const startRaw = String(formData.get('start') ?? '').trim();
+  const endRaw = String(formData.get('end') ?? '').trim();
+
+  if (!agent || !slug) return { ok: false, error: 'parâmetros inválidos' };
+
+  const timePattern = /^\d{2}:\d{2}(:\d{2})?$/;
+  if (!timePattern.test(startRaw) || !timePattern.test(endRaw)) {
+    return { ok: false, error: 'horários devem ser HH:MM' };
+  }
+  const start = startRaw.length === 5 ? `${startRaw}:00` : startRaw;
+  const end = endRaw.length === 5 ? `${endRaw}:00` : endRaw;
+
+  try {
+    await saveAgentProjectConfig({
+      agent,
+      project: slug,
+      quiet_hours_enabled: enabled,
+      quiet_start: start,
+      quiet_end: end,
+    });
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+
+  revalidatePath(`/agentes/${agent}/projetos/${slug}`);
+  return { ok: true };
+}
