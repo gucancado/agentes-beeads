@@ -1,16 +1,25 @@
 import yaml from 'js-yaml';
 import { z } from 'zod';
 
+const ModelsSchema = z.object({
+  classifier: z.string().min(1),
+  responder_baixo: z.string().min(1),
+  responder_medio: z.string().min(1),
+  responder_alto: z.string().min(1),
+});
+
 const AgentSchema = z.object({
   name: z.string().min(1),
   repo: z.string().min(1),
   enabled: z.boolean().default(true),
+  models: ModelsSchema.optional(),
 });
 
 const RegistrySchema = z.object({
   agents: z.array(AgentSchema).min(1),
 });
 
+export type AgentModels = z.infer<typeof ModelsSchema>;
 export type Agent = z.infer<typeof AgentSchema>;
 export type Registry = z.infer<typeof RegistrySchema>;
 

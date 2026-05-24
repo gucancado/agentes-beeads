@@ -2,7 +2,6 @@
 
 import { useActionState } from 'react';
 import { saveBriefingAction } from './actions';
-import { Button } from '@/components/ui/button';
 
 export function BriefingForm({
   agent,
@@ -16,30 +15,35 @@ export function BriefingForm({
   const [state, formAction, pending] = useActionState(saveBriefingAction, null);
 
   return (
-    <form action={formAction} className="space-y-3">
+    <form action={formAction}>
       <input type="hidden" name="agent" value={agent} />
       <input type="hidden" name="slug" value={slug} />
       <textarea
         name="content"
         defaultValue={initialContent}
-        rows={26}
+        rows={22}
         spellCheck
-        className="w-full rounded border bg-white p-3 font-mono text-xs leading-5 text-slate-800 shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+        className="block w-full bg-paper text-ink font-mono text-xs leading-7 px-5 py-4 outline-none resize-y min-h-[260px] border-b border-line focus:bg-white"
       />
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-400">
-          Markdown bruto. Commit direto em <code>master</code>; Coolify auto-deploya o agente.
+      <div className="flex items-center justify-between gap-3 px-5 py-3 text-[11px] text-ink-soft flex-wrap">
+        <span>
+          commit direto em{' '}
+          <code className="text-honey-deep bg-honey-soft px-1.5 py-0.5 rounded-[2px]">master</code>
+          {' '}· auto-deploy ≈ 90 s
         </span>
-        <Button type="submit" disabled={pending}>
-          {pending ? 'Salvando…' : 'Salvar briefing'}
-        </Button>
+        <div className="flex items-center gap-3">
+          {state?.ok && <span className="text-ok text-xs">✓ salvo e commitado</span>}
+          {state && !state.ok && <span className="text-err text-xs">erro: {state.error}</span>}
+          <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex items-center gap-1.5 rounded-sm bg-ink text-white px-4 py-2 font-display text-sm font-medium hover:bg-honey-deep disabled:opacity-60 transition cursor-pointer group"
+          >
+            <span>{pending ? 'Salvando…' : 'Salvar briefing'}</span>
+            <span className="inline-block size-1.5 rounded-full bg-honey group-hover:bg-white transition" />
+          </button>
+        </div>
       </div>
-      {state?.ok && (
-        <p className="text-xs text-emerald-600">Salvo e commitado.</p>
-      )}
-      {state && !state.ok && (
-        <p className="text-xs text-rose-600">Erro: {state.error}</p>
-      )}
     </form>
   );
 }

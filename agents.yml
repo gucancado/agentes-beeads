@@ -1,7 +1,16 @@
 # Registry de agentes da plataforma Semente.
 # Cada entrada vira card na home da console.
 # enabled=false oculta o agente sem deletar a entrada (útil pra pause).
+#
+# models: refletem o tier routing do agente. Atualize sempre que mexer no
+# `process-tick-message.js` (ou equivalente) do repo. Usado APENAS pra
+# display — não vira config runtime.
 agents:
   - name: mercurio
     repo: gucancado/agente-mercurio
     enabled: true
+    models:
+      classifier: claude-haiku-4-5
+      responder_baixo: claude-haiku-4-5
+      responder_medio: claude-haiku-4-5
+      responder_alto: claude-sonnet-4-6

@@ -1,25 +1,54 @@
 'use client';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 type Point = { day: string; cost: number };
 
 export function CostTimeseriesChart({ data }: { data: Point[] }) {
   return (
-    <div className="h-56 w-full">
+    <div className="h-56 w-full px-4 pt-3">
       <ResponsiveContainer>
-        <LineChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 6, right: 16, bottom: 4, left: 0 }}>
+          <defs>
+            <linearGradient id="honeyFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FFAE00" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#FFAE00" stopOpacity="0" />
+            </linearGradient>
+          </defs>
           <XAxis
             dataKey="day"
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 10, fill: '#8f8f8f' }}
             tickFormatter={(d: string) => d.slice(5)}
+            axisLine={{ stroke: '#e2e2e2' }}
+            tickLine={false}
           />
-          <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `$${v.toFixed(2)}`} />
+          <YAxis
+            tick={{ fontSize: 10, fill: '#8f8f8f' }}
+            tickFormatter={(v: number) => `$${v.toFixed(2)}`}
+            axisLine={{ stroke: '#e2e2e2' }}
+            tickLine={false}
+            width={40}
+          />
           <Tooltip
+            cursor={{ stroke: '#FFAE00', strokeWidth: 1 }}
+            contentStyle={{
+              background: '#fff',
+              border: '1px solid #e2e2e2',
+              borderRadius: 3,
+              fontSize: 11,
+              padding: '6px 10px',
+            }}
             formatter={(v) => [`$${Number(v).toFixed(4)}`, 'custo']}
-            labelClassName="text-xs"
+            labelStyle={{ color: '#545048', fontWeight: 500 }}
           />
-          <Line type="monotone" dataKey="cost" stroke="#0f172a" strokeWidth={2} dot={false} />
-        </LineChart>
+          <Area
+            type="monotone"
+            dataKey="cost"
+            stroke="#0a0a0a"
+            strokeWidth={1.8}
+            fill="url(#honeyFill)"
+            activeDot={{ r: 4, fill: '#FFAE00', stroke: '#0a0a0a', strokeWidth: 1 }}
+          />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
