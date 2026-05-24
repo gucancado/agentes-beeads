@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { loadRegistry } from '@/lib/registry-server';
-import { resolveProjectIdentity } from '@/lib/registry';
+import { resolveProjectIdentity, isProjectEnabled } from '@/lib/registry';
 import { fetchProjectStats, fetchRecentMessages } from '@/lib/stats-service';
 import { loadProjectFromAgentRepo } from '@/lib/project-md';
 import { loadAgentProjectConfig } from '@/lib/agent-project-config';
@@ -10,6 +10,8 @@ import { SectionCard } from '@/components/section-card';
 import { ModelsCard } from '@/components/models-card';
 import { BriefingForm } from './briefing-form';
 import { QuietHoursForm } from './quiet-hours-form';
+import { ProjectToggle } from './project-toggle';
+import { InstanceQrPanel } from './instance-qr-panel';
 
 function timeAgo(iso: string | null): string {
   if (!iso) return '—';
@@ -46,6 +48,7 @@ export default async function ProjectDetail({
   ]);
 
   const identity = resolveProjectIdentity(found, slug, workspace);
+  const enabled = isProjectEnabled(found, slug);
   const titleParts = splitSlug(slug);
 
   return (
@@ -76,10 +79,8 @@ export default async function ProjectDetail({
                 Sem identidade do projeto. Adicione <code>project_overrides</code> em <code>agents.yml</code> ou crie <code>_platform/workspace-map.json</code> no repo do agente.
               </span>
             )}
-            <span className="ml-auto inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] text-ok font-medium tracking-wide border border-ok/30" style={{ background: 'rgba(31,122,58,0.08)' }}>
-              <span className="size-1.5 rounded-full bg-ok" />
-              healthy · última msg {timeAgo(stats.lastMessageAt)}
-            </span>
+            <span className="ml-auto" />
+            <ProjectToggle agent={agent} slug={slug} initialEnabled={enabled} />
           </div>
         </div>
 
@@ -102,6 +103,21 @@ export default async function ProjectDetail({
         </SectionCard>
 
         <ModelsCard models={found.models} agentName={agent} />
+
+        {identity.evolution_instance && (
+          <SectionCard
+            title="WhatsApp ·"
+            titleAccent="instância Evolution"
+            meta="conectar / trocar número"
+          >
+            <InstanceQrPanel
+              agent={agent}
+              slug={slug}
+              instance={identity.evolution_instance}
+              initialNumber={identity.whatsapp_number}
+            />
+          </SectionCard>
+        )}
 
         <SectionCard
           title="Briefing ·"

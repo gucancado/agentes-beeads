@@ -12,6 +12,7 @@ const ProjectOverrideSchema = z.object({
   persona_name: z.string().optional(),
   whatsapp_number: z.string().optional(),
   evolution_instance: z.string().optional(),
+  enabled: z.boolean().default(true),
 });
 
 const AgentSchema = z.object({
@@ -55,4 +56,8 @@ export function resolveProjectIdentity(
     whatsapp_number: override?.whatsapp_number ?? baseline?.whatsapp_number ?? null,
     evolution_instance: override?.evolution_instance ?? baseline?.evolution_instance ?? null,
   };
+}
+
+export function isProjectEnabled(agent: Agent, slug: string): boolean {
+  return agent.project_overrides?.[slug]?.enabled ?? true;
 }
