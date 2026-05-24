@@ -73,7 +73,7 @@ export default async function AgentDetail({
         </div>
       </SectionCard>
 
-      <ModelsCard models={found.models} agentSlug={agent} />
+      <ModelsCard models={found.models} agentName={agent} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5">
         <SectionCard title="Custo diário" titleAccent="7d" meta="cost timeseries">

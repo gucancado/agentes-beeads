@@ -98,7 +98,7 @@ export default async function ProjectDetail({
           </div>
         </SectionCard>
 
-        <ModelsCard models={found.models} agentSlug={agent} />
+        <ModelsCard models={found.models} agentName={agent} />
 
         <SectionCard
           title="Briefing ·"
