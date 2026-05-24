@@ -32,18 +32,26 @@ export async function loadAgentProjectConfig(
   project: string,
 ): Promise<AgentProjectConfig> {
   if (useMock()) return { agent, project, ...DEFAULT_CONFIG };
-  const pool = getPool();
-  const { rows } = await pool.query<AgentProjectConfig>(
-    `SELECT agent, project, quiet_hours_enabled,
-            quiet_start::text AS quiet_start,
-            quiet_end::text AS quiet_end,
-            quiet_tz
-       FROM agent_project_config
-      WHERE agent = $1 AND project = $2`,
-    [agent, project],
-  );
-  if (rows[0]) return rows[0];
-  return { agent, project, ...DEFAULT_CONFIG };
+  try {
+    const pool = getPool();
+    const { rows } = await pool.query<AgentProjectConfig>(
+      `SELECT agent, project, quiet_hours_enabled,
+              quiet_start::text AS quiet_start,
+              quiet_end::text AS quiet_end,
+              quiet_tz
+         FROM agent_project_config
+        WHERE agent = $1 AND project = $2`,
+      [agent, project],
+    );
+    if (rows[0]) return rows[0];
+    return { agent, project, ...DEFAULT_CONFIG };
+  } catch (err) {
+    // Tabela pode não existir ainda (migration 009 não aplicada). Degrada
+    // pra defaults pra não quebrar a página inteira — save vai falhar com
+    // erro claro até a migration rodar.
+    console.warn('[agent-project-config] load falhou, devolvendo defaults:', (err as Error).message);
+    return { agent, project, ...DEFAULT_CONFIG };
+  }
 }
 
 /**
