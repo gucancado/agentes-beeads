@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { loadRegistry } from '@/lib/registry-server';
+import { resolveProjectIdentity } from '@/lib/registry';
 import { fetchProjectStats, fetchRecentMessages } from '@/lib/stats-service';
 import { loadProjectFromAgentRepo } from '@/lib/project-md';
 import { StatCard } from '@/components/stat-card';
@@ -41,6 +42,7 @@ export default async function ProjectDetail({
     loadProjectFromAgentRepo({ agent, githubRepo: found.repo, slug }),
   ]);
 
+  const identity = resolveProjectIdentity(found, slug, workspace);
   const titleParts = splitSlug(slug);
 
   return (
@@ -60,15 +62,15 @@ export default async function ProjectDetail({
             {titleParts.suffix}
           </h1>
           <div className="mt-3 flex items-center flex-wrap gap-x-6 gap-y-2 border-t border-b border-line py-3">
-            {workspace ? (
+            {identity.persona_name || identity.whatsapp_number || identity.evolution_instance ? (
               <>
-                <Chip k="persona" v={workspace.persona_name} emphasis />
-                <Chip k="whatsapp" v={workspace.whatsapp_number} />
-                <Chip k="instância" v={workspace.evolution_instance} />
+                {identity.persona_name && <Chip k="atende como" v={identity.persona_name} emphasis />}
+                {identity.whatsapp_number && <Chip k="whatsapp" v={identity.whatsapp_number} />}
+                {identity.evolution_instance && <Chip k="instância" v={identity.evolution_instance} />}
               </>
             ) : (
               <span className="text-[11px] text-ink-soft">
-                Projeto não encontrado em <code>_platform/workspace-map.json</code>.
+                Sem identidade do projeto. Adicione <code>project_overrides</code> em <code>agents.yml</code> ou crie <code>_platform/workspace-map.json</code> no repo do agente.
               </span>
             )}
             <span className="ml-auto inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] text-ok font-medium tracking-wide border border-ok/30" style={{ background: 'rgba(31,122,58,0.08)' }}>

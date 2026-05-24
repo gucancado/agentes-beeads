@@ -5,6 +5,9 @@
 # models: refletem o tier routing do agente. Atualize sempre que mexer no
 # `process-tick-message.js` (ou equivalente) do repo. Usado APENAS pra
 # display — não vira config runtime.
+#
+# project_overrides: substitui dados do _platform/workspace-map.json do repo
+# do agente quando a fonte de verdade não foi atualizada. Use com moderação.
 agents:
   - name: mercurio
     repo: gucancado/agente-mercurio
@@ -14,3 +17,7 @@ agents:
       responder_baixo: claude-haiku-4-5
       responder_medio: claude-haiku-4-5
       responder_alto: claude-sonnet-4-6
+    project_overrides:
+      metido-a-gente:
+        persona_name: "Equipe BeeAds"
+        whatsapp_number: "+5531972541177"
