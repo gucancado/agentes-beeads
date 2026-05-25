@@ -138,7 +138,7 @@ export default async function ProjectDetail({
             href={`https://github.com/${found.repo}/commits/master/projetos/${slug}/PROJECT.md`}
             target="_blank"
             rel="noreferrer"
-            className="text-[11px] text-ink underline-honey"
+            className="text-[11px] text-fg underline-honey"
           >
             ver histórico no GitHub →
           </a>
@@ -177,18 +177,18 @@ export default async function ProjectDetail({
         <div>
           {/* Breadcrumb sem barra final pendurada */}
           <nav className="flex items-center gap-2 text-[11px] text-muted-fg tracking-wide">
-            <Link href="/agentes" className="hover:text-ink transition-colors">
+            <Link href="/agentes" className="hover:text-fg transition-colors">
               agentes
             </Link>
             <span aria-hidden>/</span>
-            <Link href={`/agentes/${agent}`} className="hover:text-ink transition-colors">
+            <Link href={`/agentes/${agent}`} className="hover:text-fg transition-colors">
               {agent}
             </Link>
             <span aria-hidden>/</span>
             <span>projetos</span>
           </nav>
 
-          <h1 className="font-display text-4xl font-medium tracking-tight text-ink mt-1 leading-none">
+          <h1 className="font-display text-4xl font-medium tracking-tight text-fg mt-1 leading-none">
             {titleParts.prefix}
             <em className="italic text-honey-deep">{titleParts.mid}</em>
             {titleParts.suffix}
@@ -203,7 +203,7 @@ export default async function ProjectDetail({
                     <span className="text-[10px] uppercase tracking-[0.22em] text-muted-fg shrink-0">
                       atende como
                     </span>
-                    <span className="font-display text-2xl italic text-ink truncate">
+                    <span className="font-display text-2xl italic text-fg truncate">
                       {identity.persona_name}
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export default async function ProjectDetail({
                       <span className="text-[10px] uppercase tracking-[0.22em] text-muted-fg">
                         WhatsApp
                       </span>
-                      <span className="font-mono text-ink/80">{identity.whatsapp_number}</span>
+                      <span className="font-mono text-fg/80">{identity.whatsapp_number}</span>
                     </div>
                   )}
                   {identity.evolution_instance && (
@@ -223,7 +223,7 @@ export default async function ProjectDetail({
                       <span className="text-[10px] uppercase tracking-[0.22em] text-muted-fg">
                         Instância
                       </span>
-                      <span className="font-mono text-ink/80">{identity.evolution_instance}</span>
+                      <span className="font-mono text-fg/80">{identity.evolution_instance}</span>
                     </div>
                   )}
                   <ProjectToggle agent={agent} slug={slug} initialEnabled={enabled} />
@@ -284,7 +284,7 @@ function RecentMessagesCard({ recent, sticky = false }: {
       {recent.length === 0 ? (
         <p className="px-5 py-4 text-sm text-muted-fg">Nenhuma mensagem ainda.</p>
       ) : (
-        <ul className={`divide-y divide-line ${sticky ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`}>
+        <ul className={`divide-y divide-border ${sticky ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`}>
           {recent.map((m) => (
             <li
               key={m.id}
@@ -292,7 +292,7 @@ function RecentMessagesCard({ recent, sticky = false }: {
             >
               <span
                 className={`font-display italic text-lg leading-none ${
-                  m.direction === 'inbound' ? 'text-ink' : 'text-honey-deep'
+                  m.direction === 'inbound' ? 'text-fg' : 'text-honey-deep'
                 }`}
               >
                 {m.direction === 'inbound' ? '←' : '→'}
@@ -300,7 +300,7 @@ function RecentMessagesCard({ recent, sticky = false }: {
               <span className="text-[10px] text-muted-fg tracking-wide">
                 {m.direction === 'inbound' ? 'in' : 'out'} · {shortTime(m.createdAt)}
               </span>
-              <span className="text-xs text-ink/80 leading-snug">{m.text}</span>
+              <span className="text-xs text-fg/80 leading-snug">{m.text}</span>
               <span className="text-[10px] text-honey/80 text-right tabular-nums font-mono">
                 {shortIdentifier(m.identifier)}
               </span>

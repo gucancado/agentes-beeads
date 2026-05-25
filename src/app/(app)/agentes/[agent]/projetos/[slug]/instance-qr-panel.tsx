@@ -143,11 +143,11 @@ export function InstanceQrPanel({
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">número conectado</div>
-          <div className="font-mono text-sm text-ink mt-1">{info?.ownerNumber ?? '—'}</div>
+          <div className="font-mono text-sm text-fg mt-1">{info?.ownerNumber ?? '—'}</div>
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">profile WhatsApp</div>
-          <div className="font-mono text-sm text-ink mt-1">{info?.profileName ?? '—'}</div>
+          <div className="font-mono text-sm text-fg mt-1">{info?.profileName ?? '—'}</div>
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">instância</div>
@@ -169,7 +169,7 @@ export function InstanceQrPanel({
           type="button"
           onClick={logoutThenConnect}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-card text-ink px-3.5 py-2 font-display text-sm font-medium hover:border-honey disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-card text-fg px-3.5 py-2 font-display text-sm font-medium hover:border-honey disabled:opacity-60 cursor-pointer"
         >
           Trocar número (logout + QR)
         </button>
@@ -177,7 +177,7 @@ export function InstanceQrPanel({
           type="button"
           onClick={refreshStatus}
           disabled={pending}
-          className="text-[11px] text-ink underline-honey cursor-pointer disabled:opacity-50"
+          className="text-[11px] text-fg underline-honey cursor-pointer disabled:opacity-50"
         >
           atualizar status
         </button>
@@ -210,7 +210,7 @@ export function InstanceQrPanel({
       {pairingCode && !qrBase64 && (
         <div className="rounded-md border border-border bg-paper p-3 inline-block">
           <span className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">pairing code</span>
-          <div className="font-mono text-xl font-medium text-ink tracking-widest mt-1">{pairingCode}</div>
+          <div className="font-mono text-xl font-medium text-fg tracking-widest mt-1">{pairingCode}</div>
         </div>
       )}
     </div>

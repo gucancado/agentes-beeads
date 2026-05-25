@@ -13,7 +13,7 @@ export default async function AgentesHome() {
     <div className="space-y-6">
       <div>
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-fg">Agentes registrados</p>
-        <h1 className="font-display text-4xl font-medium tracking-tight text-ink mt-1">
+        <h1 className="font-display text-4xl font-medium tracking-tight text-fg mt-1">
           Visão <em className="italic text-honey-deep">geral</em>
         </h1>
         <p className="mt-2 text-sm text-muted-fg max-w-xl">
@@ -39,7 +39,7 @@ export default async function AgentesHome() {
               >
                 <header className="flex items-baseline justify-between px-5 pt-4 pb-2 border-b border-border">
                   <div>
-                    <h3 className="font-display text-xl font-medium tracking-tight text-ink capitalize">
+                    <h3 className="font-display text-xl font-medium tracking-tight text-fg capitalize">
                       {agent.name}
                     </h3>
                     <p className="text-[10px] text-muted-fg mt-0.5">{agent.repo}</p>
@@ -50,7 +50,7 @@ export default async function AgentesHome() {
                   </span>
                 </header>
                 {s ? (
-                  <dl className="grid grid-cols-3 divide-x divide-line">
+                  <dl className="grid grid-cols-3 divide-x divide-border">
                     <div className="px-4 py-3">
                       <dt className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">$ hoje</dt>
                       <dd className="font-display text-xl font-medium text-honey-deep mt-1 leading-none">
@@ -59,13 +59,13 @@ export default async function AgentesHome() {
                     </div>
                     <div className="px-4 py-3">
                       <dt className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">in / out</dt>
-                      <dd className="font-display text-xl font-medium text-ink mt-1 leading-none">
+                      <dd className="font-display text-xl font-medium text-fg mt-1 leading-none">
                         {s.msgsIn24h} / {s.msgsOut24h}
                       </dd>
                     </div>
                     <div className="px-4 py-3">
                       <dt className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">erros</dt>
-                      <dd className={`font-display text-xl font-medium mt-1 leading-none ${errOk ? 'text-ink' : 'text-err'}`}>
+                      <dd className={`font-display text-xl font-medium mt-1 leading-none ${errOk ? 'text-fg' : 'text-err'}`}>
                         {errPct.toFixed(1)}%
                       </dd>
                     </div>

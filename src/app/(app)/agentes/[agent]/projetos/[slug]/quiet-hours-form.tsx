@@ -36,7 +36,7 @@ export function QuietHoursForm({
           defaultChecked={initialEnabled}
           className="size-4 accent-honey-deep"
         />
-        <span className="text-sm text-ink">
+        <span className="text-sm text-fg">
           Ativar quiet hours
           <span className="text-muted-fg text-[11px] ml-2">
             (agente não responde nessa janela; enfileira pra responder no fim)

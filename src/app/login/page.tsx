@@ -7,7 +7,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center gap-2.5">
           <HexLogo size={28} />
-          <span className="font-display text-2xl font-medium tracking-tight text-ink">
+          <span className="font-display text-2xl font-medium tracking-tight text-fg">
             agentes<span className="italic text-honey-deep">·</span>beeads
           </span>
         </div>

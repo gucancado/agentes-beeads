@@ -23,7 +23,7 @@ export function TierBreakdownDonut({ data }: { data: Bucket[] }) {
                 style={{ width: `${pct}%`, background: color }}
               />
             </span>
-            <span className="text-right font-medium text-ink tabular-nums">
+            <span className="text-right font-medium text-fg tabular-nums">
               {b.count}
               <span className="text-muted-fg"> ·{' '}</span>
               <span className="text-muted-fg">${b.cost.toFixed(3)}</span>

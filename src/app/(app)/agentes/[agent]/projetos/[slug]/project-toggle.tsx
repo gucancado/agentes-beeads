@@ -41,7 +41,7 @@ export function ProjectToggle({
       <button
         type="submit"
         disabled={pending}
-        className="text-[11px] text-ink underline-honey cursor-pointer disabled:opacity-50"
+        className="text-[11px] text-fg underline-honey cursor-pointer disabled:opacity-50"
         title={current ? 'Pausar o agente apenas neste projeto' : 'Reativar o agente para este projeto'}
       >
         {pending ? '...' : current ? 'pausar' : 'reativar'}

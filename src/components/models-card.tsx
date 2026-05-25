@@ -63,7 +63,7 @@ export function ModelsCard({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-[11px] text-ink underline-honey cursor-pointer"
+            className="text-[11px] text-fg underline-honey cursor-pointer"
           >
             editar →
           </button>
@@ -79,7 +79,7 @@ export function ModelsCard({
                   <span className={`size-2 rounded-[2px] ${swatchClass(s.swatch)}`} />
                   {s.label}
                 </span>
-                <span className="font-display italic text-[17px] font-medium leading-tight tracking-tight text-ink">
+                <span className="font-display italic text-[17px] font-medium leading-tight tracking-tight text-fg">
                   {id}
                 </span>
                 <span className="text-[11px] text-muted-fg">{s.desc}</span>
@@ -148,7 +148,7 @@ export function ModelsCard({
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-xs px-3 py-2 text-muted-fg hover:text-ink cursor-pointer"
+              className="text-xs px-3 py-2 text-muted-fg hover:text-fg cursor-pointer"
               disabled={pending}
             >
               cancelar
