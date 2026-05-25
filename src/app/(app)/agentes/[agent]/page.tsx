@@ -42,19 +42,19 @@ export default async function AgentDetail({
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/agentes" className="text-[11px] text-ink-soft hover:text-ink">
+        <Link href="/agentes" className="text-[11px] text-muted-fg hover:text-ink">
           ← agentes
         </Link>
         <h1 className="font-display text-4xl font-medium tracking-tight text-ink mt-1 capitalize">
           {agent}
         </h1>
-        <div className="mt-3 flex items-center justify-between flex-wrap gap-4 py-3 border-t border-b border-line">
+        <div className="mt-3 flex items-center justify-between flex-wrap gap-4 py-3 border-t border-b border-border">
           <span className="inline-flex items-baseline gap-1.5 text-xs">
-            <span className="text-[10px] uppercase tracking-[0.12em] text-ink-mute">repo</span>
+            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-fg">repo</span>
             <span className="text-ink">{found.repo}</span>
           </span>
           <span className="inline-flex items-baseline gap-1.5 text-xs">
-            <span className="text-[10px] uppercase tracking-[0.12em] text-ink-mute">projetos ativos</span>
+            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-fg">projetos ativos</span>
             <span className="text-ink font-medium">{detail.projects.length}</span>
           </span>
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-ok/30 bg-ok/8 text-[11px] text-ok font-medium tracking-wide" style={{ background: 'rgba(31,122,58,0.08)' }}>
@@ -78,7 +78,7 @@ export default async function AgentDetail({
       <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5">
         <SectionCard title="Custo diário" titleAccent="7d" meta="cost timeseries">
           <CostTimeseriesChart data={timeseries} />
-          <div className="px-5 py-3 text-[11px] text-ink-soft border-t border-line flex justify-between">
+          <div className="px-5 py-3 text-[11px] text-muted-fg border-t border-border flex justify-between">
             <span>23 mai → hoje</span>
             <span>
               total <b className="text-ink font-medium">${timeseries.reduce((a, p) => a + p.cost, 0).toFixed(4)}</b>
@@ -92,24 +92,24 @@ export default async function AgentDetail({
 
       <SectionCard title="Projetos do" titleAccent="agente" meta={`${detail.projects.length} ativo(s)`}>
         {detail.projects.length === 0 ? (
-          <p className="px-5 py-4 text-sm text-ink-soft">Nenhum projeto com mensagens nos últimos 7d.</p>
+          <p className="px-5 py-4 text-sm text-muted-fg">Nenhum projeto com mensagens nos últimos 7d.</p>
         ) : (
           <ul className="divide-y divide-line">
             {detail.projects.map((p) => (
               <li key={p.project}>
                 <Link
                   href={`/agentes/${agent}/projetos/${p.project}`}
-                  className="grid grid-cols-[1fr_auto_auto_auto_24px] gap-6 items-baseline px-5 py-3.5 hover:bg-paper-2 transition"
+                  className="grid grid-cols-[1fr_auto_auto_auto_24px] gap-6 items-baseline px-5 py-3.5 hover:bg-muted transition"
                 >
                   <span className="font-display italic text-lg font-medium text-ink">{p.project}</span>
-                  <span className="text-xs text-ink-soft tabular-nums">
-                    <span className="text-ink-mute">in/out 24h</span> {p.msgsIn24h}/{p.msgsOut24h}
+                  <span className="text-xs text-muted-fg tabular-nums">
+                    <span className="text-muted-fg">in/out 24h</span> {p.msgsIn24h}/{p.msgsOut24h}
                   </span>
-                  <span className="text-xs text-ink-soft tabular-nums">
-                    <span className="text-ink-mute">$ 24h</span> ${p.cost24h.toFixed(4)}
+                  <span className="text-xs text-muted-fg tabular-nums">
+                    <span className="text-muted-fg">$ 24h</span> ${p.cost24h.toFixed(4)}
                   </span>
-                  <span className="text-xs text-ink-soft">
-                    <span className="text-ink-mute">última</span> {timeAgo(p.lastMessageAt)}
+                  <span className="text-xs text-muted-fg">
+                    <span className="text-muted-fg">última</span> {timeAgo(p.lastMessageAt)}
                   </span>
                   <span className="text-honey-deep">→</span>
                 </Link>

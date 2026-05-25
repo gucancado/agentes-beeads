@@ -16,8 +16,8 @@ export function TierBreakdownDonut({ data }: { data: Bucket[] }) {
         const color = TIER_COLORS[b.tier] ?? TIER_COLORS.unknown;
         return (
           <div key={b.tier} className="grid grid-cols-[60px_1fr_60px] gap-3 items-center text-xs">
-            <span className="text-ink-soft capitalize">{b.tier}</span>
-            <span className="relative h-1.5 rounded-sm border border-line bg-paper-2 overflow-hidden">
+            <span className="text-muted-fg capitalize">{b.tier}</span>
+            <span className="relative h-1.5 rounded-sm border border-border bg-muted overflow-hidden">
               <span
                 className="absolute inset-y-[-1px] left-[-1px] rounded-sm"
                 style={{ width: `${pct}%`, background: color }}
@@ -25,14 +25,14 @@ export function TierBreakdownDonut({ data }: { data: Bucket[] }) {
             </span>
             <span className="text-right font-medium text-ink tabular-nums">
               {b.count}
-              <span className="text-ink-mute"> ·{' '}</span>
-              <span className="text-ink-soft">${b.cost.toFixed(3)}</span>
+              <span className="text-muted-fg"> ·{' '}</span>
+              <span className="text-muted-fg">${b.cost.toFixed(3)}</span>
             </span>
           </div>
         );
       })}
       {data.length === 0 && (
-        <p className="text-xs text-ink-soft">Sem dados de tier ainda.</p>
+        <p className="text-xs text-muted-fg">Sem dados de tier ainda.</p>
       )}
     </div>
   );

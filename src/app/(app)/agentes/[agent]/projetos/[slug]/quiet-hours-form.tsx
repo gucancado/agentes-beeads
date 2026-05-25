@@ -38,7 +38,7 @@ export function QuietHoursForm({
         />
         <span className="text-sm text-ink">
           Ativar quiet hours
-          <span className="text-ink-soft text-[11px] ml-2">
+          <span className="text-muted-fg text-[11px] ml-2">
             (agente não responde nessa janela; enfileira pra responder no fim)
           </span>
         </span>
@@ -46,34 +46,34 @@ export function QuietHoursForm({
 
       <div className="grid grid-cols-2 gap-4">
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.12em] text-ink-mute">Início</span>
+          <span className="text-[11px] uppercase tracking-[0.12em] text-muted-fg">Início</span>
           <input
             type="time"
             name="start"
             defaultValue={startHHMM}
             required
-            className="mt-1 block w-full bg-paper text-ink font-mono text-sm px-3 py-2 border border-line rounded-sm focus:border-honey-deep focus:bg-white outline-none"
+            className="mt-1 block w-full bg-paper text-ink font-mono text-sm px-3 py-2 border border-border rounded-sm focus:border-honey-deep focus:bg-white outline-none"
           />
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.12em] text-ink-mute">Fim</span>
+          <span className="text-[11px] uppercase tracking-[0.12em] text-muted-fg">Fim</span>
           <input
             type="time"
             name="end"
             defaultValue={endHHMM}
             required
-            className="mt-1 block w-full bg-paper text-ink font-mono text-sm px-3 py-2 border border-line rounded-sm focus:border-honey-deep focus:bg-white outline-none"
+            className="mt-1 block w-full bg-paper text-ink font-mono text-sm px-3 py-2 border border-border rounded-sm focus:border-honey-deep focus:bg-white outline-none"
           />
         </label>
       </div>
 
-      <p className="text-[11px] text-ink-soft">
+      <p className="text-[11px] text-muted-fg">
         Fuso horário: <code>{initialTz}</code>. Janelas cruzando meia-noite (ex: 23:00 → 07:00) são
         suportadas.
       </p>
 
       <div className="flex items-center justify-between gap-3 pt-1">
-        <div className="text-[11px] text-ink-soft">
+        <div className="text-[11px] text-muted-fg">
           Aplica imediatamente. Para testar com agente respondendo na hora, desligue temporariamente.
         </div>
         <div className="flex items-center gap-3">

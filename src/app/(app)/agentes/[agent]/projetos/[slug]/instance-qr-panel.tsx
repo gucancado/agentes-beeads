@@ -125,7 +125,7 @@ export function InstanceQrPanel({
     open: 'text-ok',
     connecting: 'text-warn',
     close: 'text-err',
-    unknown: 'text-ink-mute',
+    unknown: 'text-muted-fg',
   };
   const stateLabel: Record<State, string> = {
     open: 'conectado',
@@ -138,20 +138,20 @@ export function InstanceQrPanel({
     <div className="px-5 py-5 space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">estado</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">estado</div>
           <div className={`font-display text-lg font-medium mt-1 ${stateColor[state]}`}>{stateLabel[state]}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">número conectado</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">número conectado</div>
           <div className="font-mono text-sm text-ink mt-1">{info?.ownerNumber ?? '—'}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">profile WhatsApp</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">profile WhatsApp</div>
           <div className="font-mono text-sm text-ink mt-1">{info?.profileName ?? '—'}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">instância</div>
-          <div className="font-mono text-xs text-ink-soft mt-1 break-all">{instance}</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">instância</div>
+          <div className="font-mono text-xs text-muted-fg mt-1 break-all">{instance}</div>
         </div>
       </div>
 
@@ -169,7 +169,7 @@ export function InstanceQrPanel({
           type="button"
           onClick={logoutThenConnect}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-sm border border-line bg-card text-ink px-3.5 py-2 font-display text-sm font-medium hover:border-honey disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-card text-ink px-3.5 py-2 font-display text-sm font-medium hover:border-honey disabled:opacity-60 cursor-pointer"
         >
           Trocar número (logout + QR)
         </button>
@@ -193,7 +193,7 @@ export function InstanceQrPanel({
       )}
 
       {qrBase64 && (
-        <div className="rounded-md border border-line bg-paper p-4 inline-flex flex-col items-center gap-3 max-w-[280px]">
+        <div className="rounded-md border border-border bg-paper p-4 inline-flex flex-col items-center gap-3 max-w-[280px]">
           <img
             src={qrBase64.startsWith('data:') ? qrBase64 : `data:image/png;base64,${qrBase64}`}
             alt="QR code Evolution"
@@ -201,15 +201,15 @@ export function InstanceQrPanel({
             height={240}
             className="block"
           />
-          <p className="text-[10px] text-center text-ink-soft leading-snug">
+          <p className="text-[10px] text-center text-muted-fg leading-snug">
             No WhatsApp do número desejado → <b>Aparelhos conectados</b> → <b>Conectar um aparelho</b> → escaneia o QR.<br />
             Atualiza automático quando conectar.
           </p>
         </div>
       )}
       {pairingCode && !qrBase64 && (
-        <div className="rounded-md border border-line bg-paper p-3 inline-block">
-          <span className="text-[10px] uppercase tracking-[0.16em] text-ink-mute">pairing code</span>
+        <div className="rounded-md border border-border bg-paper p-3 inline-block">
+          <span className="text-[10px] uppercase tracking-[0.16em] text-muted-fg">pairing code</span>
           <div className="font-mono text-xl font-medium text-ink tracking-widest mt-1">{pairingCode}</div>
         </div>
       )}

@@ -25,7 +25,7 @@ export function ProjectToggle({
         className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-medium tracking-wide border ${
           current
             ? 'text-ok border-ok/30'
-            : 'text-ink-soft border-line-2 bg-paper-2'
+            : 'text-muted-fg border-border bg-muted'
         }`}
         style={current ? { background: 'rgba(31,122,58,0.08)' } : undefined}
       >

@@ -47,7 +47,7 @@ export function ModelsCard({
   if (!models) {
     return (
       <SectionCard title="Modelos por" titleAccent="tier" meta="não configurado">
-        <p className="px-5 py-4 text-sm text-ink-soft">
+        <p className="px-5 py-4 text-sm text-muted-fg">
           Adicione a chave <code>models:</code> em <code>agents.yml</code>.
         </p>
       </SectionCard>
@@ -74,17 +74,17 @@ export function ModelsCard({
             const id = models[s.key];
             const info = findModel(id);
             return (
-              <div key={s.key} className="flex flex-col gap-1.5 px-5 py-4 border-r border-line last:border-r-0 border-b xl:border-b-0 last:border-b-0">
-                <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-ink-mute">
+              <div key={s.key} className="flex flex-col gap-1.5 px-5 py-4 border-r border-border last:border-r-0 border-b xl:border-b-0 last:border-b-0">
+                <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-muted-fg">
                   <span className={`size-2 rounded-[2px] ${swatchClass(s.swatch)}`} />
                   {s.label}
                 </span>
                 <span className="font-display italic text-[17px] font-medium leading-tight tracking-tight text-ink">
                   {id}
                 </span>
-                <span className="text-[11px] text-ink-soft">{s.desc}</span>
+                <span className="text-[11px] text-muted-fg">{s.desc}</span>
                 {info && (
-                  <span className="text-[10px] text-ink-soft tabular-nums">
+                  <span className="text-[10px] text-muted-fg tabular-nums">
                     {PROVIDER_LABEL[info.provider]} · ${info.pricing.in.toFixed(2)}/${info.pricing.out.toFixed(2)} per 1M
                   </span>
                 )}
@@ -93,7 +93,7 @@ export function ModelsCard({
           })}
         </div>
         {state?.ok && (
-          <div className="px-5 py-2 border-t border-line text-[11px] text-ok bg-ok/5">
+          <div className="px-5 py-2 border-t border-border text-[11px] text-ok bg-ok/5">
             ✓ modelos atualizados em agents.yml — rebuild Coolify (~90s) pra a app pegar a versão nova.
           </div>
         )}
@@ -112,15 +112,15 @@ export function ModelsCard({
         <input type="hidden" name="agent" value={agentName} />
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
           {SLOTS.map((s) => (
-            <div key={s.key} className="flex flex-col gap-2 px-5 py-4 border-r border-line last:border-r-0 border-b xl:border-b-0 last:border-b-0">
-              <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-ink-mute">
+            <div key={s.key} className="flex flex-col gap-2 px-5 py-4 border-r border-border last:border-r-0 border-b xl:border-b-0 last:border-b-0">
+              <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-muted-fg">
                 <span className={`size-2 rounded-[2px] ${swatchClass(s.swatch)}`} />
                 {s.label}
               </span>
               <select
                 name={s.key}
                 defaultValue={models[s.key]}
-                className="font-mono text-xs bg-paper border border-line rounded-sm px-2 py-1.5 outline-none focus:border-honey focus:ring-1 focus:ring-honey text-ink"
+                className="font-mono text-xs bg-paper border border-border rounded-sm px-2 py-1.5 outline-none focus:border-honey focus:ring-1 focus:ring-honey text-ink"
               >
                 <optgroup label="Anthropic">
                   {MODELS.filter((m) => m.provider === 'anthropic').map((m) => (
@@ -133,11 +133,11 @@ export function ModelsCard({
                   ))}
                 </optgroup>
               </select>
-              <span className="text-[11px] text-ink-soft">{s.desc}</span>
+              <span className="text-[11px] text-muted-fg">{s.desc}</span>
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between px-5 py-3 border-t border-line gap-3 flex-wrap text-[11px] text-ink-soft">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-border gap-3 flex-wrap text-[11px] text-muted-fg">
           <span>
             Salvar commita em <code className="text-honey-deep bg-honey-soft px-1.5 py-0.5 rounded-[2px]">main</code> do agentes-beeads. Coolify reaplica em ~90 s.
           </span>
@@ -148,7 +148,7 @@ export function ModelsCard({
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-xs px-3 py-2 text-ink-soft hover:text-ink cursor-pointer"
+              className="text-xs px-3 py-2 text-muted-fg hover:text-ink cursor-pointer"
               disabled={pending}
             >
               cancelar

@@ -56,10 +56,10 @@ export default async function ProjectDetail({
       {/* Coluna principal */}
       <div className="space-y-6 min-w-0">
         <div>
-          <div className="text-[11px] text-ink-mute tracking-wide">
-            <Link href="/agentes" className="text-ink-soft hover:text-ink">agentes</Link>
+          <div className="text-[11px] text-muted-fg tracking-wide">
+            <Link href="/agentes" className="text-muted-fg hover:text-ink">agentes</Link>
             {' / '}
-            <Link href={`/agentes/${agent}`} className="text-ink-soft hover:text-ink">{agent}</Link>
+            <Link href={`/agentes/${agent}`} className="text-muted-fg hover:text-ink">{agent}</Link>
             {' / projetos /'}
           </div>
           <h1 className="font-display text-4xl font-medium tracking-tight text-ink mt-1 leading-none">
@@ -67,7 +67,7 @@ export default async function ProjectDetail({
             <em className="italic text-honey-deep">{titleParts.mid}</em>
             {titleParts.suffix}
           </h1>
-          <div className="mt-3 flex items-center flex-wrap gap-x-6 gap-y-2 border-t border-b border-line py-3">
+          <div className="mt-3 flex items-center flex-wrap gap-x-6 gap-y-2 border-t border-b border-border py-3">
             {identity.persona_name || identity.whatsapp_number || identity.evolution_instance ? (
               <>
                 {identity.persona_name && <Chip k="atende como" v={identity.persona_name} emphasis />}
@@ -75,7 +75,7 @@ export default async function ProjectDetail({
                 {identity.evolution_instance && <Chip k="instância" v={identity.evolution_instance} />}
               </>
             ) : (
-              <span className="text-[11px] text-ink-soft">
+              <span className="text-[11px] text-muted-fg">
                 Sem identidade do projeto. Adicione <code>project_overrides</code> em <code>agents.yml</code> ou crie <code>_platform/workspace-map.json</code> no repo do agente.
               </span>
             )}
@@ -94,7 +94,7 @@ export default async function ProjectDetail({
               value={stats.avgLatencyMs == null ? '—' : `${Math.round(stats.avgLatencyMs)} ms`}
             />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-line">
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-border">
             <StatCard label="msgs in (7d)" value={stats.msgsIn7d} />
             <StatCard label="msgs out (7d)" value={stats.msgsOut7d} />
             <StatCard label="$ 7d" value={`$${stats.cost7d.toFixed(4)}`} />
@@ -174,7 +174,7 @@ export default async function ProjectDetail({
 function Chip({ k, v, emphasis = false }: { k: string; v: string; emphasis?: boolean }) {
   return (
     <span className="inline-flex items-baseline gap-1.5 text-xs">
-      <span className="text-[10px] uppercase tracking-[0.12em] text-ink-mute">{k}</span>
+      <span className="text-[10px] uppercase tracking-[0.12em] text-muted-fg">{k}</span>
       <span className="text-ink">
         {emphasis ? <em className="font-display italic">{v}</em> : v}
       </span>
@@ -193,7 +193,7 @@ function RecentMessagesCard({ recent, sticky = false }: {
       meta={`últimas ${recent.length}`}
     >
       {recent.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-ink-soft">Nenhuma mensagem ainda.</p>
+        <p className="px-5 py-4 text-sm text-muted-fg">Nenhuma mensagem ainda.</p>
       ) : (
         <ul className={`divide-y divide-line ${sticky ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`}>
           {recent.map((m) => (
@@ -201,11 +201,11 @@ function RecentMessagesCard({ recent, sticky = false }: {
               <span className={`font-display italic text-lg leading-none ${m.direction === 'inbound' ? 'text-ink' : 'text-honey-deep'}`}>
                 {m.direction === 'inbound' ? '←' : '→'}
               </span>
-              <span className="text-[11px] text-ink-mute tracking-wide">
+              <span className="text-[11px] text-muted-fg tracking-wide">
                 {m.direction === 'inbound' ? 'in' : 'out'} · {shortTime(m.createdAt)}
               </span>
               <span className="text-ink leading-snug">{m.text}</span>
-              <span className="font-display italic text-ink-soft text-[12px] text-right tabular-nums">
+              <span className="font-display italic text-muted-fg text-[12px] text-right tabular-nums">
                 {shortIdentifier(m.identifier)}
               </span>
             </li>

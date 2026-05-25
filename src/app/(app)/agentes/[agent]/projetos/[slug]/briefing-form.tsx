@@ -23,9 +23,9 @@ export function BriefingForm({
         defaultValue={initialContent}
         rows={22}
         spellCheck
-        className="block w-full bg-paper text-ink font-mono text-xs leading-7 px-5 py-4 outline-none resize-y min-h-[260px] border-b border-line focus:bg-white"
+        className="block w-full bg-paper text-ink font-mono text-xs leading-7 px-5 py-4 outline-none resize-y min-h-[260px] border-b border-border focus:bg-white"
       />
-      <div className="flex items-center justify-between gap-3 px-5 py-3 text-[11px] text-ink-soft flex-wrap">
+      <div className="flex items-center justify-between gap-3 px-5 py-3 text-[11px] text-muted-fg flex-wrap">
         <span>
           commit direto em{' '}
           <code className="text-honey-deep bg-honey-soft px-1.5 py-0.5 rounded-[2px]">master</code>
