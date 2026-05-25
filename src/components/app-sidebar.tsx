@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { loadRegistry } from '@/lib/registry-server';
 import { getEnabledAgents } from '@/lib/registry';
 import { HexLogo } from './hex-logo';
-import { ThemeToggle } from './theme-toggle';
+import { ThemeToggle } from '@beeads/ui';
 
 export function AppSidebar() {
   const registry = loadRegistry();

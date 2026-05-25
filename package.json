@@ -14,7 +14,7 @@
     "@beeads/charts": "^0.1.0",
     "@beeads/fonts": "^0.1.0",
     "@beeads/tokens": "^0.1.0",
-    "@beeads/ui": "^0.1.0",
+    "@beeads/ui": "^0.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.3.0",

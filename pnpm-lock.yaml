@@ -21,8 +21,8 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0
       '@beeads/ui':
-        specifier: ^0.1.0
-        version: 0.1.0(@date-fns/tz@1.5.0)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^0.2.0
+        version: 0.2.0(@date-fns/tz@1.5.0)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -299,6 +299,12 @@ packages:
 
   '@beeads/ui@0.1.0':
     resolution: {integrity: sha512-99ebk3fs5CWIdOiTsgWb0ECZNxuTFGu/jO2s6/oEN7drgKsr680UA2Y0RaiEafTDO/uMCYiJN+MUxqM6LK/lLA==}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+
+  '@beeads/ui@0.2.0':
+    resolution: {integrity: sha512-osXrEh1J9Hju3t13EEEeULpTh9zJINa1v+HqpFkTLOOcbgTp5VEJNm6y2fC+GePkLi2kdbjW65AacvD82B6c0w==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -3081,6 +3087,27 @@ snapshots:
   '@beeads/tokens@0.1.0': {}
 
   '@beeads/ui@0.1.0(@date-fns/tz@1.5.0)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@base-ui/react': 1.5.0(@date-fns/tz@1.5.0)(@types/react@19.2.15)(date-fns@4.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@beeads/tokens': 0.1.0
+      '@radix-ui/react-slot': 1.2.4(@types/react@19.2.15)(react@19.2.4)
+      class-variance-authority: 0.7.1
+      clsx: 2.1.1
+      cmdk: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      date-fns: 4.3.0
+      lucide-react: 0.469.0(react@19.2.4)
+      next-themes: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
+      react-day-picker: 10.0.1(@types/react@19.2.15)(react@19.2.4)
+      react-dom: 19.2.4(react@19.2.4)
+      sonner: 1.7.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      tailwind-merge: 2.6.1
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - '@types/react'
+      - '@types/react-dom'
+
+  '@beeads/ui@0.2.0(@date-fns/tz@1.5.0)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@base-ui/react': 1.5.0(@date-fns/tz@1.5.0)(@types/react@19.2.15)(date-fns@4.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@beeads/tokens': 0.1.0
