@@ -34,8 +34,8 @@ export default function RootLayout({
       className={`${fraunces.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-paper text-ink font-mono">
-        <ThemeProvider>
+      <body className="min-h-full flex flex-col bg-bg text-fg font-mono">
+        <ThemeProvider defaultTheme="dark" attribute="class" enableSystem={false}>
           {children}
           <Toaster />
         </ThemeProvider>

@@ -7,7 +7,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const userEmail = session?.user?.email ?? null;
 
   return (
-    <div className="grid min-h-screen grid-cols-[248px_1fr] bg-paper">
+    <div className="grid min-h-screen grid-cols-[248px_1fr] bg-bg">
       <AppSidebar />
       <div className="flex flex-col min-w-0">
         <Topbar userEmail={userEmail} />
