@@ -24,4 +24,17 @@
   .underline-honey:hover {
     background: var(--color-honey-soft);
   }
+  /* Subtle pulse used on the "agente ativo" status dot only. */
+  @keyframes pulse-ok {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 var(--color-ok);
+    }
+    50% {
+      box-shadow: 0 0 0 6px transparent;
+    }
+  }
+  .status-pulse {
+    animation: pulse-ok 2.5s ease-in-out infinite;
+  }
 }

@@ -29,7 +29,13 @@ export function ProjectToggle({
         }`}
         style={current ? { background: 'rgba(31,122,58,0.08)' } : undefined}
       >
-        <span className={`size-1.5 rounded-full ${current ? 'bg-ok' : 'bg-ink-mute'}`} />
+        <span
+          className={
+            current
+              ? 'status-pulse size-1.5 rounded-full bg-ok shadow-[0_0_0_3px_rgba(31,122,58,0.15)]'
+              : 'size-1.5 rounded-full bg-ink-mute'
+          }
+        />
         {current ? 'agente ativo' : 'pausado'}
       </span>
       <button

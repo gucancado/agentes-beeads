@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@beeads/ui';
 import { loadRegistry } from '@/lib/registry-server';
 import { resolveProjectIdentity, isProjectEnabled } from '@/lib/registry';
 import { fetchProjectStats, fetchRecentMessages } from '@/lib/stats-service';
@@ -30,6 +31,27 @@ function splitSlug(slug: string): { prefix: string; mid: string; suffix: string 
   return { prefix: slug.slice(0, mid - 1), mid: slug[mid - 1], suffix: slug.slice(mid) };
 }
 
+/**
+ * TODO(data): substituir por série temporal real (ex: queries.ts → diário 7d
+ * para in/out/cost). Hoje gera uma curva derivada do total apenas pra dar
+ * shape visual ao sparkline.
+ */
+function fakeSeriesFromTotal(total: number, points = 7): number[] {
+  if (total <= 0) return Array.from({ length: points }, () => 0);
+  const avg = total / points;
+  // Distribuição determinística pra manter consistência entre renders (sem
+  // Math.random — evita hydration mismatch e ruído visual entre reloads).
+  const weights = [0.6, 0.8, 1.1, 1.0, 1.3, 0.9, 1.3];
+  return weights.slice(0, points).map((w) => Math.max(0, Math.round(avg * w)));
+}
+
+function fakeSeriesFromCost(total: number, points = 7): number[] {
+  if (total <= 0) return Array.from({ length: points }, () => 0);
+  const avg = total / points;
+  const weights = [0.5, 0.7, 1.2, 1.1, 1.4, 0.8, 1.3];
+  return weights.slice(0, points).map((w) => Number((avg * w).toFixed(6)));
+}
+
 export default async function ProjectDetail({
   params,
 }: {
@@ -51,111 +73,189 @@ export default async function ProjectDetail({
   const enabled = isProjectEnabled(found, slug);
   const titleParts = splitSlug(slug);
 
+  const hasIdentity = !!(
+    identity.persona_name || identity.whatsapp_number || identity.evolution_instance
+  );
+
+  const operacaoContent = (
+    <>
+      <SectionCard title="Métricas das últimas" titleAccent="24 horas" meta="janela 24h">
+        <div className="grid grid-cols-2 md:grid-cols-4">
+          <StatCard label="msgs in" value={stats.msgsIn24h} />
+          <StatCard label="msgs out" value={stats.msgsOut24h} />
+          <StatCard label="$ 24h" value={`$${stats.cost24h.toFixed(4)}`} variant="honey" />
+          <StatCard
+            label="latência média"
+            value={stats.avgLatencyMs == null ? '—' : `${Math.round(stats.avgLatencyMs)} ms`}
+          />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 border-t border-border">
+          <StatCard
+            label="msgs in (7d)"
+            value={stats.msgsIn7d}
+            series={fakeSeriesFromTotal(stats.msgsIn7d)}
+          />
+          <StatCard
+            label="msgs out (7d)"
+            value={stats.msgsOut7d}
+            series={fakeSeriesFromTotal(stats.msgsOut7d)}
+          />
+          <StatCard
+            label="$ 7d"
+            value={`$${stats.cost7d.toFixed(4)}`}
+            series={fakeSeriesFromCost(stats.cost7d)}
+          />
+          <StatCard label="última msg" value={timeAgo(stats.lastMessageAt)} />
+        </div>
+      </SectionCard>
+
+      <ModelsCard models={found.models} agentName={agent} />
+
+      {identity.evolution_instance && (
+        <SectionCard
+          title="WhatsApp ·"
+          titleAccent="instância Evolution"
+          meta="conectar / trocar número"
+        >
+          <InstanceQrPanel
+            agent={agent}
+            slug={slug}
+            instance={identity.evolution_instance}
+            initialNumber={identity.whatsapp_number}
+          />
+        </SectionCard>
+      )}
+    </>
+  );
+
+  const configContent = (
+    <>
+      <SectionCard
+        title="Briefing ·"
+        titleAccent="PROJECT.md"
+        action={
+          <a
+            href={`https://github.com/${found.repo}/commits/master/projetos/${slug}/PROJECT.md`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-ink underline-honey"
+          >
+            ver histórico no GitHub →
+          </a>
+        }
+      >
+        {projectMd === null ? (
+          <p className="px-5 py-4 text-sm text-err">
+            <code>projetos/{slug}/PROJECT.md</code> não encontrado no repo.
+          </p>
+        ) : (
+          <BriefingForm agent={agent} slug={slug} initialContent={projectMd} />
+        )}
+      </SectionCard>
+
+      <SectionCard
+        title="Quiet hours ·"
+        titleAccent="anti-detecção"
+        meta={quietConfig.quiet_hours_enabled ? 'ativo' : 'desligado'}
+      >
+        <QuietHoursForm
+          agent={agent}
+          slug={slug}
+          initialEnabled={quietConfig.quiet_hours_enabled}
+          initialStart={quietConfig.quiet_start}
+          initialEnd={quietConfig.quiet_end}
+          initialTz={quietConfig.quiet_tz}
+        />
+      </SectionCard>
+    </>
+  );
+
   return (
     <div className="space-y-6 3xl:grid 3xl:grid-cols-[1fr_400px] 3xl:gap-6 3xl:space-y-0 3xl:items-start">
       {/* Coluna principal */}
       <div className="space-y-6 min-w-0">
         <div>
-          <div className="text-[11px] text-muted-fg tracking-wide">
-            <Link href="/agentes" className="text-muted-fg hover:text-ink">agentes</Link>
-            {' / '}
-            <Link href={`/agentes/${agent}`} className="text-muted-fg hover:text-ink">{agent}</Link>
-            {' / projetos /'}
-          </div>
+          {/* Breadcrumb sem barra final pendurada */}
+          <nav className="flex items-center gap-2 text-[11px] text-muted-fg tracking-wide">
+            <Link href="/agentes" className="hover:text-ink transition-colors">
+              agentes
+            </Link>
+            <span aria-hidden>/</span>
+            <Link href={`/agentes/${agent}`} className="hover:text-ink transition-colors">
+              {agent}
+            </Link>
+            <span aria-hidden>/</span>
+            <span>projetos</span>
+          </nav>
+
           <h1 className="font-display text-4xl font-medium tracking-tight text-ink mt-1 leading-none">
             {titleParts.prefix}
             <em className="italic text-honey-deep">{titleParts.mid}</em>
             {titleParts.suffix}
           </h1>
-          <div className="mt-3 flex items-center flex-wrap gap-x-6 gap-y-2 border-t border-b border-border py-3">
-            {identity.persona_name || identity.whatsapp_number || identity.evolution_instance ? (
+
+          {/* Identidade do projeto: persona como display, metadados como pills sutis */}
+          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-t border-b border-border py-3">
+            {hasIdentity ? (
               <>
-                {identity.persona_name && <Chip k="atende como" v={identity.persona_name} emphasis />}
-                {identity.whatsapp_number && <Chip k="whatsapp" v={identity.whatsapp_number} />}
-                {identity.evolution_instance && <Chip k="instância" v={identity.evolution_instance} />}
+                {identity.persona_name && (
+                  <div className="flex items-baseline gap-3 min-w-0">
+                    <span className="text-[10px] uppercase tracking-[0.22em] text-muted-fg shrink-0">
+                      atende como
+                    </span>
+                    <span className="font-display text-2xl italic text-ink truncate">
+                      {identity.persona_name}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-6 text-[11px]">
+                  {identity.whatsapp_number && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] uppercase tracking-[0.22em] text-muted-fg">
+                        WhatsApp
+                      </span>
+                      <span className="font-mono text-ink/80">{identity.whatsapp_number}</span>
+                    </div>
+                  )}
+                  {identity.evolution_instance && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] uppercase tracking-[0.22em] text-muted-fg">
+                        Instância
+                      </span>
+                      <span className="font-mono text-ink/80">{identity.evolution_instance}</span>
+                    </div>
+                  )}
+                  <ProjectToggle agent={agent} slug={slug} initialEnabled={enabled} />
+                </div>
               </>
             ) : (
-              <span className="text-[11px] text-muted-fg">
-                Sem identidade do projeto. Adicione <code>project_overrides</code> em <code>agents.yml</code> ou crie <code>_platform/workspace-map.json</code> no repo do agente.
-              </span>
+              <>
+                <span className="text-[11px] text-muted-fg">
+                  Sem identidade do projeto. Adicione <code>project_overrides</code> em{' '}
+                  <code>agents.yml</code> ou crie <code>_platform/workspace-map.json</code> no repo
+                  do agente.
+                </span>
+                <ProjectToggle agent={agent} slug={slug} initialEnabled={enabled} />
+              </>
             )}
-            <span className="ml-auto" />
-            <ProjectToggle agent={agent} slug={slug} initialEnabled={enabled} />
           </div>
         </div>
 
-        <SectionCard title="Métricas das últimas" titleAccent="24 horas" meta="janela 24h">
-          <div className="grid grid-cols-2 md:grid-cols-4">
-            <StatCard label="msgs in" value={stats.msgsIn24h} />
-            <StatCard label="msgs out" value={stats.msgsOut24h} />
-            <StatCard label="$ 24h" value={`$${stats.cost24h.toFixed(4)}`} variant="honey" />
-            <StatCard
-              label="latência média"
-              value={stats.avgLatencyMs == null ? '—' : `${Math.round(stats.avgLatencyMs)} ms`}
-            />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-border">
-            <StatCard label="msgs in (7d)" value={stats.msgsIn7d} />
-            <StatCard label="msgs out (7d)" value={stats.msgsOut7d} />
-            <StatCard label="$ 7d" value={`$${stats.cost7d.toFixed(4)}`} />
-            <StatCard label="última msg" value={timeAgo(stats.lastMessageAt)} />
-          </div>
-        </SectionCard>
+        <Tabs defaultValue="operacao" className="w-full">
+          <TabsList className="mb-2">
+            <TabsTrigger value="operacao">Operação</TabsTrigger>
+            <TabsTrigger value="config">Configuração</TabsTrigger>
+          </TabsList>
 
-        <ModelsCard models={found.models} agentName={agent} />
+          <TabsContent value="operacao" className="space-y-6 mt-4" keepMounted>
+            {operacaoContent}
+          </TabsContent>
 
-        {identity.evolution_instance && (
-          <SectionCard
-            title="WhatsApp ·"
-            titleAccent="instância Evolution"
-            meta="conectar / trocar número"
-          >
-            <InstanceQrPanel
-              agent={agent}
-              slug={slug}
-              instance={identity.evolution_instance}
-              initialNumber={identity.whatsapp_number}
-            />
-          </SectionCard>
-        )}
-
-        <SectionCard
-          title="Briefing ·"
-          titleAccent="PROJECT.md"
-          action={
-            <a
-              href={`https://github.com/${found.repo}/commits/master/projetos/${slug}/PROJECT.md`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] text-ink underline-honey"
-            >
-              ver histórico no GitHub →
-            </a>
-          }
-        >
-          {projectMd === null ? (
-            <p className="px-5 py-4 text-sm text-err">
-              <code>projetos/{slug}/PROJECT.md</code> não encontrado no repo.
-            </p>
-          ) : (
-            <BriefingForm agent={agent} slug={slug} initialContent={projectMd} />
-          )}
-        </SectionCard>
-
-        <SectionCard
-          title="Quiet hours ·"
-          titleAccent="anti-detecção"
-          meta={quietConfig.quiet_hours_enabled ? 'ativo' : 'desligado'}
-        >
-          <QuietHoursForm
-            agent={agent}
-            slug={slug}
-            initialEnabled={quietConfig.quiet_hours_enabled}
-            initialStart={quietConfig.quiet_start}
-            initialEnd={quietConfig.quiet_end}
-            initialTz={quietConfig.quiet_tz}
-          />
-        </SectionCard>
+          <TabsContent value="config" className="space-y-6 mt-4" keepMounted>
+            {configContent}
+          </TabsContent>
+        </Tabs>
 
         {/* mensagens — só aparece aqui se NÃO for 3xl (ultra-wide); em wide, vão pra coluna direita */}
         <div className="3xl:hidden">
@@ -168,17 +268,6 @@ export default async function ProjectDetail({
         <RecentMessagesCard recent={recent} sticky />
       </aside>
     </div>
-  );
-}
-
-function Chip({ k, v, emphasis = false }: { k: string; v: string; emphasis?: boolean }) {
-  return (
-    <span className="inline-flex items-baseline gap-1.5 text-xs">
-      <span className="text-[10px] uppercase tracking-[0.12em] text-muted-fg">{k}</span>
-      <span className="text-ink">
-        {emphasis ? <em className="font-display italic">{v}</em> : v}
-      </span>
-    </span>
   );
 }
 
@@ -197,15 +286,22 @@ function RecentMessagesCard({ recent, sticky = false }: {
       ) : (
         <ul className={`divide-y divide-line ${sticky ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`}>
           {recent.map((m) => (
-            <li key={m.id} className="grid grid-cols-[18px_70px_1fr_60px] gap-3 px-5 py-3 items-baseline text-[13px]">
-              <span className={`font-display italic text-lg leading-none ${m.direction === 'inbound' ? 'text-ink' : 'text-honey-deep'}`}>
+            <li
+              key={m.id}
+              className="grid grid-cols-[18px_70px_1fr_60px] gap-3 px-5 py-3 items-baseline"
+            >
+              <span
+                className={`font-display italic text-lg leading-none ${
+                  m.direction === 'inbound' ? 'text-ink' : 'text-honey-deep'
+                }`}
+              >
                 {m.direction === 'inbound' ? '←' : '→'}
               </span>
-              <span className="text-[11px] text-muted-fg tracking-wide">
+              <span className="text-[10px] text-muted-fg tracking-wide">
                 {m.direction === 'inbound' ? 'in' : 'out'} · {shortTime(m.createdAt)}
               </span>
-              <span className="text-ink leading-snug">{m.text}</span>
-              <span className="font-display italic text-muted-fg text-[12px] text-right tabular-nums">
+              <span className="text-xs text-ink/80 leading-snug">{m.text}</span>
+              <span className="text-[10px] text-honey/80 text-right tabular-nums font-mono">
                 {shortIdentifier(m.identifier)}
               </span>
             </li>
