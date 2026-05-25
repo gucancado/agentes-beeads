@@ -1,95 +1,20 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "@beeads/tokens/theme.css";
+@import "@beeads/ui/styles.css";
+@import "@beeads/charts/styles.css";
 
-@custom-variant dark (&:is(.dark *));
-
-/* paleta beeads + tokens semânticos */
-@theme inline {
-  --color-honey: #FFAE00;
-  --color-honey-soft: #FFE7A8;
-  --color-honey-deep: #B97A00;
-  --color-ink: #0a0a0a;
-  --color-ink-2: #1a1a17;
-  --color-ink-soft: #545048;
-  --color-ink-mute: #8f8f8f;
-  --color-line: #e2e2e2;
-  --color-line-2: #c0c0c0;
-  --color-paper: #fafaf7;
-  --color-paper-2: #f4f4f0;
-  --color-ok: #1f7a3a;
-  --color-warn: #b97a00;
-  --color-err: #c43838;
-
-  --font-display: var(--font-fraunces);
-  --font-mono: var(--font-geist-mono);
-  --font-sans: var(--font-geist-mono);
-
-  /* tokens shadcn mapeados pro tema beeads */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --radius-sm: 2px;
-  --radius-md: 3px;
-  --radius-lg: 4px;
-  --radius-xl: 6px;
-  --radius-2xl: 8px;
-  --radius-3xl: 12px;
-  --radius-4xl: 16px;
-
+/* Override: Tailwind v4 needs literal values in @theme for media-query breakpoints.
+   @beeads/tokens declares --breakpoint-3xl: var(--breakpoint-3xl) which produces
+   @media (width >= var(...)), unsupported by current PostCSS/browsers. */
+@theme {
   --breakpoint-3xl: 1700px;
 }
 
-:root {
-  --background: #fafaf7;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --primary: #0a0a0a;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f4f0;
-  --secondary-foreground: #0a0a0a;
-  --muted: #f4f4f0;
-  --muted-foreground: #545048;
-  --accent: #FFAE00;
-  --accent-foreground: #0a0a0a;
-  --destructive: #c43838;
-  --border: #e2e2e2;
-  --input: #e2e2e2;
-  --ring: #FFAE00;
-  --radius: 0.25rem;
-}
-
+/* App-specific overrides */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
-    @apply bg-paper text-ink;
     font-variant-numeric: tabular-nums;
   }
-  .serif, .font-display {
-    font-family: var(--font-display), Georgia, serif;
-  }
-  textarea, input, button { font-family: inherit; }
   /* Anchor accent helper */
   .underline-honey {
     border-bottom: 2px solid var(--color-honey);
