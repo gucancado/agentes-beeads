@@ -47,10 +47,14 @@ export function loginUrl(currentUrl: string): string {
 
 export async function getCurrentUrl(): Promise<string> {
   const h = await headers();
-  const host = h.get('host') ?? 'agentes.beeads.com.br';
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'agentes.beeads.com.br';
   const proto = h.get('x-forwarded-proto') ?? 'https';
   const pathname = h.get('x-pathname') ?? '/';
-  return `${proto}://${host}${pathname}`;
+  const safeHost = host.startsWith('0.0.0.0') || host.startsWith('localhost') || host.startsWith('127.0.0.1')
+    ? 'agentes.beeads.com.br'
+    : host;
+  const safeProto = safeHost === 'agentes.beeads.com.br' ? 'https' : proto;
+  return `${safeProto}://${safeHost}${pathname}`;
 }
 
 /** Compat export: mirrors the shape returned by NextAuth's auth() */
