@@ -1,13 +1,12 @@
 import Link from 'next/link';
-import { loadRegistry } from '@/lib/registry-server';
-import { getEnabledAgents } from '@/lib/registry';
+import { loadAccessibleAgents } from '@/lib/registry-server';
+import { getRawCookieHeader } from '@/lib/auth';
 import { HexLogo } from './hex-logo';
 import { ThemeToggle } from '@beeads/ui';
 
-export function AppSidebar() {
-  const registry = loadRegistry();
-  const enabled = getEnabledAgents(registry);
-  const disabled = registry.agents.filter((a) => !a.enabled);
+export async function AppSidebar() {
+  const cookie = await getRawCookieHeader();
+  const agents = await loadAccessibleAgents(cookie);
 
   return (
     <aside className="border-r border-border bg-muted px-5 py-6 flex flex-col gap-6 min-h-screen">
@@ -23,7 +22,7 @@ export function AppSidebar() {
           Agentes
         </h4>
         <ul className="space-y-2">
-          {enabled.map((agent) => (
+          {agents.map((agent) => (
             <li key={agent.name}>
               <Link
                 href={`/agentes/${agent.name}`}
@@ -35,23 +34,15 @@ export function AppSidebar() {
                     {agent.name}
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-fg">repo: {agent.repo.split('/')[1] ?? agent.repo}</p>
+                <p className="text-[11px] text-muted-fg">{agent.workspaceName}</p>
               </Link>
             </li>
           ))}
-          {disabled.map((agent) => (
-            <li key={agent.name}>
-              <div className="block rounded-sm border border-border bg-card px-3.5 py-3 opacity-60">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="size-1.5 rounded-full bg-muted-fg" />
-                  <span className="font-display text-base font-medium tracking-tight text-card-fg capitalize">
-                    {agent.name}
-                  </span>
-                </div>
-                <p className="text-[11px] text-muted-fg">disabled em agents.yml</p>
-              </div>
+          {agents.length === 0 && (
+            <li className="text-[11px] text-muted-fg px-1">
+              Nenhum agente acessível.
             </li>
-          ))}
+          )}
         </ul>
       </nav>
 
