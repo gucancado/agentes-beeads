@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { loadRegistry } from '@/lib/registry-server';
-import { getEnabledAgents } from '@/lib/registry';
+import { loadAccessibleAgents } from '@/lib/registry-server';
+import { getRawCookieHeader } from '@/lib/auth';
 import { fetchAgentHomeStats } from '@/lib/stats-service';
 
 export default async function AgentesHome() {
-  const registry = loadRegistry();
-  const agents = getEnabledAgents(registry);
+  const cookie = await getRawCookieHeader();
+  const agents = await loadAccessibleAgents(cookie);
   const stats = await fetchAgentHomeStats(agents.map((a) => a.name));
   const byAgent = new Map(stats.map((s) => [s.agent, s]));
 

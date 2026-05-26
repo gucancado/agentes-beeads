@@ -1,4 +1,4 @@
-import { signOut } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
 export function Topbar({ userEmail }: { userEmail: string | null }) {
   return (
@@ -15,7 +15,7 @@ export function Topbar({ userEmail }: { userEmail: string | null }) {
         <form
           action={async () => {
             'use server';
-            await signOut({ redirectTo: '/login' });
+            redirect('https://bloquim.beeads.com.br/login');
           }}
         >
           <button

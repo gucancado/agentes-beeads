@@ -1,36 +1,69 @@
-import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { z } from 'zod';
+import 'server-only';
+import { cookies, headers } from 'next/headers';
+import jwt from 'jsonwebtoken';
 
-const credsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+const JWT_SECRET = process.env.JWT_SECRET!;
+if (!JWT_SECRET) throw new Error('JWT_SECRET env var is required');
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: 'jwt' },
-  pages: { signIn: '/login' },
-  providers: [
-    Credentials({
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Senha', type: 'password' },
-      },
-      async authorize(creds) {
-        const parsed = credsSchema.safeParse(creds);
-        if (!parsed.success) return null;
+export interface AuthUser {
+  userId: string;
+  email: string;
+}
 
-        const expectedEmail = process.env.ADMIN_EMAIL;
-        const expectedPassword = process.env.ADMIN_PASSWORD;
-        if (!expectedEmail || !expectedPassword) {
-          throw new Error('ADMIN_EMAIL/ADMIN_PASSWORD não configurados');
-        }
+interface JwtPayload {
+  userId?: string;
+  sub?: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
 
-        if (parsed.data.email === expectedEmail && parsed.data.password === expectedPassword) {
-          return { id: 'admin', email: expectedEmail, name: 'Owner' };
-        }
-        return null;
-      },
-    }),
-  ],
-});
+export async function getAuthUser(): Promise<AuthUser | null> {
+  const cookieStore = await cookies();
+  const token =
+    cookieStore.get('__beeads_session')?.value ?? cookieStore.get('token')?.value;
+  if (!token) return null;
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const userId = payload.userId ?? payload.sub;
+    if (!userId) return null;
+    return { userId, email: payload.email };
+  } catch {
+    return null;
+  }
+}
+
+export async function getRawCookieHeader(): Promise<string> {
+  const h = await headers();
+  return h.get('cookie') ?? '';
+}
+
+export function loginUrl(currentUrl: string): string {
+  const u = new URL('https://bloquim.beeads.com.br/login');
+  u.searchParams.set('return_url', currentUrl);
+  return u.toString();
+}
+
+export async function getCurrentUrl(): Promise<string> {
+  const h = await headers();
+  const host = h.get('host') ?? 'agentes.beeads.com.br';
+  const proto = h.get('x-forwarded-proto') ?? 'https';
+  const pathname = h.get('x-pathname') ?? '/';
+  return `${proto}://${host}${pathname}`;
+}
+
+/** Compat export: mirrors the shape returned by NextAuth's auth() */
+export async function auth() {
+  const u = await getAuthUser();
+  if (!u) return null;
+  return { user: { id: u.userId, email: u.email } };
+}
+
+/**
+ * Server Action helper: redirect to Bloquim login (clears session cookie).
+ * Used by Topbar to implement "sair →".
+ */
+export async function logoutRedirectUrl(): Promise<string> {
+  return 'https://bloquim.beeads.com.br/login';
+}
