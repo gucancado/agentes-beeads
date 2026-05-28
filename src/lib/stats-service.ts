@@ -36,3 +36,13 @@ export async function fetchRecentMessages(agent: string, project: string, limit:
   if (useMock()) return m.mockRecentMessages(limit);
   return q.getRecentMessages(getPool(), agent, project, limit);
 }
+
+export async function fetchConversations(agent: string, project: string) {
+  if (useMock()) return m.mockConversations();
+  return q.getConversations(getPool(), agent, project);
+}
+
+export async function fetchConversationThread(agent: string, project: string, identifier: string) {
+  if (useMock()) return m.mockConversationThread(identifier);
+  return q.getConversationThread(getPool(), agent, project, identifier);
+}

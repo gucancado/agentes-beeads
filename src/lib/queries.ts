@@ -40,6 +40,34 @@ export type RecentMessage = {
   createdAt: string;
 };
 
+export type Conversation = {
+  identifier: string;
+  pushName: string | null;
+  msgCount: number;
+  lastMessageAt: string;
+};
+
+export type ConversationMessage = {
+  id: number;
+  direction: 'inbound' | 'outbound';
+  text: string;
+  createdAt: string;
+  tier: string | null;
+  model: string | null;
+  classifierIntent: string | null;
+  latencyMs: number | null;
+  respondCost: number;
+  classifyCost: number;
+  turnCost: number;
+};
+
+export type ConversationThread = {
+  identifier: string;
+  pushName: string | null;
+  messages: ConversationMessage[];
+  totalCost: number;
+};
+
 type Querier = {
   query: (sql: string, params?: unknown[]) => Promise<{ rows: unknown[] }>;
 };
@@ -228,4 +256,103 @@ export async function getRecentMessages(pool: Querier, agent: string, project: s
     text: String(r.text),
     createdAt: String(r.created_at),
   }));
+}
+
+export async function getConversations(
+  pool: Querier,
+  agent: string,
+  project: string
+): Promise<Conversation[]> {
+  const { rows } = await pool.query(
+    `
+    SELECT
+      m.identifier,
+      (SELECT wl.push_name FROM webhook_logs wl
+         WHERE wl.agent = m.agent AND wl.channel = m.channel
+           AND wl.identifier = m.identifier AND wl.push_name IS NOT NULL
+         ORDER BY wl.created_at DESC LIMIT 1) AS push_name,
+      COUNT(*) AS msg_count,
+      MAX(m.created_at) AS last_message_at
+    FROM messages m
+    WHERE m.agent = $1 AND m.project = $2 AND m.channel = 'whatsapp'
+    GROUP BY m.agent, m.channel, m.identifier
+    ORDER BY MAX(m.created_at) DESC
+    `,
+    [agent, project]
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    identifier: String(r.identifier),
+    pushName: strOrNull(r.push_name),
+    msgCount: num(r.msg_count),
+    lastMessageAt: String(r.last_message_at),
+  }));
+}
+
+export async function getConversationThread(
+  pool: Querier,
+  agent: string,
+  project: string,
+  identifier: string
+): Promise<ConversationThread> {
+  const [msgsResp, headerResp] = await Promise.all([
+    pool.query(
+      `
+      SELECT
+        m.id, m.direction, m.text, m.created_at,
+        m.tier, m.model, m.classifier_intent, m.latency_ms,
+        COALESCE(m.cost_usd, 0) AS respond_cost,
+        COALESCE(c.cost_usd, 0) AS classify_cost
+      FROM messages m
+      LEFT JOIN LATERAL (
+        SELECT cost_usd FROM llm_metrics lm
+        WHERE lm.agent = m.agent
+          AND lm.task = 'classify'
+          AND lm.message_id IS NULL
+          AND lm.created_at < m.created_at
+          AND lm.created_at > m.created_at - INTERVAL '60 seconds'
+        ORDER BY lm.created_at DESC LIMIT 1
+      ) c ON m.direction = 'outbound'
+      WHERE m.agent = $1 AND m.project = $2 AND m.identifier = $3
+      ORDER BY m.created_at ASC
+      `,
+      [agent, project, identifier]
+    ),
+    pool.query(
+      `
+      SELECT push_name FROM webhook_logs
+      WHERE agent = $1 AND identifier = $2 AND push_name IS NOT NULL
+      ORDER BY created_at DESC LIMIT 1
+      `,
+      [agent, identifier]
+    ),
+  ]);
+
+  const messages: ConversationMessage[] = (msgsResp.rows as Record<string, unknown>[]).map((r) => {
+    const respondCost = num(r.respond_cost);
+    const classifyCost = num(r.classify_cost);
+    const direction = String(r.direction) as 'inbound' | 'outbound';
+    return {
+      id: num(r.id),
+      direction,
+      text: String(r.text),
+      createdAt: String(r.created_at),
+      tier: strOrNull(r.tier),
+      model: strOrNull(r.model),
+      classifierIntent: strOrNull(r.classifier_intent),
+      latencyMs: r.latency_ms == null ? null : num(r.latency_ms),
+      respondCost,
+      classifyCost,
+      turnCost: direction === 'outbound' ? respondCost + classifyCost : 0,
+    };
+  });
+
+  const totalCost = messages.reduce((acc, m) => acc + m.turnCost, 0);
+  const headerRow = (headerResp.rows[0] ?? {}) as Record<string, unknown>;
+
+  return {
+    identifier,
+    pushName: strOrNull(headerRow.push_name),
+    messages,
+    totalCost,
+  };
 }

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@beeads/ui';
 import { loadRegistry } from '@/lib/registry-server';
 import { resolveProjectIdentity, isProjectEnabled } from '@/lib/registry';
-import { fetchProjectStats, fetchRecentMessages } from '@/lib/stats-service';
+import { fetchProjectStats } from '@/lib/stats-service';
 import { loadProjectFromAgentRepo } from '@/lib/project-md';
 import { loadAgentProjectConfig } from '@/lib/agent-project-config';
 import { StatCard } from '@/components/stat-card';
@@ -14,6 +14,7 @@ import { QuietHoursForm } from './quiet-hours-form';
 import { ProjectToggle } from './project-toggle';
 import { InstanceQrPanel } from './instance-qr-panel';
 import { SchedulingTab } from './scheduling-tab';
+import { ConversasView } from './conversas-view';
 
 function timeAgo(iso: string | null): string {
   if (!iso) return '—';
@@ -55,17 +56,22 @@ function fakeSeriesFromCost(total: number, points = 7): number[] {
 
 export default async function ProjectDetail({
   params,
+  searchParams,
 }: {
   params: Promise<{ agent: string; slug: string }>;
+  searchParams: Promise<{ tab?: string; conv?: string }>;
 }) {
   const { agent, slug } = await params;
+  const sp = await searchParams;
+  const selectedConv = sp.conv;
+  const defaultTab = selectedConv ? 'conversas' : (sp.tab ?? 'operacao');
+
   const registry = loadRegistry();
   const found = registry.agents.find((a) => a.name === agent && a.enabled);
   if (!found) notFound();
 
-  const [stats, recent, { workspace, projectMd }, quietConfig] = await Promise.all([
+  const [stats, { workspace, projectMd }, quietConfig] = await Promise.all([
     fetchProjectStats(agent, slug),
-    fetchRecentMessages(agent, slug, 20),
     loadProjectFromAgentRepo({ agent, githubRepo: found.repo, slug }),
     loadAgentProjectConfig(agent, slug),
   ]);
@@ -172,8 +178,7 @@ export default async function ProjectDetail({
   );
 
   return (
-    <div className="space-y-6 3xl:grid 3xl:grid-cols-[1fr_400px] 3xl:gap-6 3xl:space-y-0 3xl:items-start">
-      {/* Coluna principal */}
+    <div className="space-y-6">
       <div className="space-y-6 min-w-0">
         <div>
           {/* Breadcrumb sem barra final pendurada */}
@@ -243,15 +248,20 @@ export default async function ProjectDetail({
           </div>
         </div>
 
-        <Tabs defaultValue="operacao" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="mb-2">
             <TabsTrigger value="operacao">Operação</TabsTrigger>
+            <TabsTrigger value="conversas">Conversas</TabsTrigger>
             <TabsTrigger value="config">Configuração</TabsTrigger>
             <TabsTrigger value="agendamento">Agendamento</TabsTrigger>
           </TabsList>
 
           <TabsContent value="operacao" className="space-y-6 mt-4" keepMounted>
             {operacaoContent}
+          </TabsContent>
+
+          <TabsContent value="conversas" className="mt-4" keepMounted>
+            <ConversasView agent={agent} slug={slug} selectedConv={selectedConv} />
           </TabsContent>
 
           <TabsContent value="config" className="space-y-6 mt-4" keepMounted>
@@ -266,73 +276,8 @@ export default async function ProjectDetail({
             />
           </TabsContent>
         </Tabs>
-
-        {/* mensagens — só aparece aqui se NÃO for 3xl (ultra-wide); em wide, vão pra coluna direita */}
-        <div className="3xl:hidden">
-          <RecentMessagesCard recent={recent} />
-        </div>
       </div>
-
-      {/* Coluna lateral em ultra-wide (≥1700px) */}
-      <aside className="hidden 3xl:block 3xl:sticky 3xl:top-6">
-        <RecentMessagesCard recent={recent} sticky />
-      </aside>
     </div>
   );
 }
 
-function RecentMessagesCard({ recent, sticky = false }: {
-  recent: Array<{ id: number; direction: 'inbound' | 'outbound'; identifier: string; text: string; createdAt: string }>;
-  sticky?: boolean;
-}) {
-  return (
-    <SectionCard
-      title="Mensagens"
-      titleAccent="recentes"
-      meta={`últimas ${recent.length}`}
-    >
-      {recent.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-muted-fg">Nenhuma mensagem ainda.</p>
-      ) : (
-        <ul className={`divide-y divide-border ${sticky ? 'max-h-[calc(100vh-120px)] overflow-y-auto' : ''}`}>
-          {recent.map((m) => (
-            <li
-              key={m.id}
-              className="grid grid-cols-[18px_70px_1fr_60px] gap-3 px-5 py-3 items-baseline"
-            >
-              <span
-                className={`font-display italic text-lg leading-none ${
-                  m.direction === 'inbound' ? 'text-fg' : 'text-honey-deep'
-                }`}
-              >
-                {m.direction === 'inbound' ? '←' : '→'}
-              </span>
-              <span className="text-[10px] text-muted-fg tracking-wide">
-                {m.direction === 'inbound' ? 'in' : 'out'} · {shortTime(m.createdAt)}
-              </span>
-              <span className="text-xs text-fg/80 leading-snug">{m.text}</span>
-              <span className="text-[10px] text-honey/80 text-right tabular-nums font-mono">
-                {shortIdentifier(m.identifier)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </SectionCard>
-  );
-}
-
-function shortTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 60) return `${Math.max(0, mins)}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d`;
-}
-
-function shortIdentifier(id: string): string {
-  // +5531977786735 → "+97778"
-  if (!id.startsWith('+')) return id;
-  return '+' + id.slice(-5);
-}
