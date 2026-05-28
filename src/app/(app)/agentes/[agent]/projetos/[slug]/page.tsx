@@ -13,6 +13,7 @@ import { BriefingForm } from './briefing-form';
 import { QuietHoursForm } from './quiet-hours-form';
 import { ProjectToggle } from './project-toggle';
 import { InstanceQrPanel } from './instance-qr-panel';
+import { SchedulingTab } from './scheduling-tab';
 
 function timeAgo(iso: string | null): string {
   if (!iso) return '—';
@@ -246,6 +247,7 @@ export default async function ProjectDetail({
           <TabsList className="mb-2">
             <TabsTrigger value="operacao">Operação</TabsTrigger>
             <TabsTrigger value="config">Configuração</TabsTrigger>
+            <TabsTrigger value="agendamento">Agendamento</TabsTrigger>
           </TabsList>
 
           <TabsContent value="operacao" className="space-y-6 mt-4" keepMounted>
@@ -254,6 +256,14 @@ export default async function ProjectDetail({
 
           <TabsContent value="config" className="space-y-6 mt-4" keepMounted>
             {configContent}
+          </TabsContent>
+
+          <TabsContent value="agendamento">
+            <SchedulingTab
+              agent={agent}
+              slug={slug}
+              displayName={identity.persona_name ?? slug}
+            />
           </TabsContent>
         </Tabs>
 
