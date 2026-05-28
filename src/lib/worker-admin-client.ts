@@ -82,6 +82,31 @@ export type SchedulingAgenda = {
   updated_at: string;
 };
 
+export type GoogleConnectionPublic = {
+  id: number;
+  project_id: number;
+  google_email: string;
+  scopes: string[];
+  connected_at: string;
+  last_refresh_at: string | null;
+  last_error: string | null;
+};
+
+export type GoogleTestResult = {
+  ok: boolean;
+  email: string;
+  calendar_ok: boolean;
+  calendar_error?: string;
+  gmail_ok: boolean;
+  gmail_error?: string;
+  scopes_granted: string[];
+  scope_warnings: string[];
+};
+
+export type TestAccessResult =
+  | { ok: true; calendar_metadata: { id: string; summary: string; timeZone: string } }
+  | { ok: false; error: 'not_shared' | 'not_found' | 'auth' | 'unknown'; detail?: string; agent_email?: string };
+
 export type GoalUpsertBody = {
   goal_type: 'scheduling';
   enabled?: boolean;
@@ -184,7 +209,12 @@ export async function getProjectDetail(
   agent: string,
   slug: string,
   opts: CallOptions = {}
-): Promise<{ project: Project; goals: ProjectGoal[]; agendas: SchedulingAgenda[] }> {
+): Promise<{
+  project: Project;
+  goals: ProjectGoal[];
+  agendas: SchedulingAgenda[];
+  google_connection: GoogleConnectionPublic | null;
+}> {
   return workerFetch(`${basePath(agent, slug)}`, { method: 'GET', ...opts });
 }
 
@@ -267,6 +297,57 @@ export async function deactivateAgenda(
   return workerFetch<SchedulingAgenda>(`${basePath(agent, slug)}/agendas/${agendaId}`, {
     method: 'DELETE',
     body: JSON.stringify({ if_match_updated_at }),
+    ...opts,
+  });
+}
+
+// ── Google OAuth ─────────────────────────────────────────────────────────
+
+export async function startGoogleOAuth(
+  agent: string,
+  slug: string,
+  opts: CallOptions = {}
+): Promise<{ url: string }> {
+  return workerFetch(`${basePath(agent, slug)}/google/oauth-start`, {
+    method: 'POST',
+    body: '{}',
+    ...opts,
+  });
+}
+
+export async function disconnectGoogle(
+  agent: string,
+  slug: string,
+  opts: CallOptions = {}
+): Promise<{ ok: true }> {
+  return workerFetch(`${basePath(agent, slug)}/google/disconnect`, {
+    method: 'POST',
+    body: '{}',
+    ...opts,
+  });
+}
+
+export async function testGoogleConnection(
+  agent: string,
+  slug: string,
+  opts: CallOptions = {}
+): Promise<GoogleTestResult> {
+  return workerFetch(`${basePath(agent, slug)}/google/test`, {
+    method: 'POST',
+    body: '{}',
+    ...opts,
+  });
+}
+
+export async function testAgendaAccess(
+  agent: string,
+  slug: string,
+  agendaId: number,
+  opts: CallOptions = {}
+): Promise<TestAccessResult> {
+  return workerFetch(`${basePath(agent, slug)}/agendas/${agendaId}/test-access`, {
+    method: 'POST',
+    body: '{}',
     ...opts,
   });
 }
