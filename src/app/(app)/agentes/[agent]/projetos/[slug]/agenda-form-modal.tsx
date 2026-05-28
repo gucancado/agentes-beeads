@@ -25,7 +25,7 @@ export function AgendaFormModal({
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Nova agenda' : 'Editar agenda'}</DialogTitle>
         </DialogHeader>
-        <AgendaForm agent={agent} slug={slug} mode={mode} agenda={agenda} />
+        <AgendaForm agent={agent} slug={slug} mode={mode} agenda={agenda} onSuccess={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   );

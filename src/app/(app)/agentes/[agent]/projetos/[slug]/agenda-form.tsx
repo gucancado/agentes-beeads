@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { saveAgendaAction, type ActionResult } from './scheduling-actions';
 import { WorkingHoursEditor } from './working-hours-editor';
 import type { SchedulingAgenda } from '@/lib/worker-admin-client';
@@ -13,11 +13,15 @@ type Props = {
   onSuccess?: () => void;
 };
 
-export function AgendaForm({ agent, slug, mode, agenda }: Props) {
+export function AgendaForm({ agent, slug, mode, agenda, onSuccess }: Props) {
   const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(
     saveAgendaAction,
     null
   );
+
+  useEffect(() => {
+    if (state?.ok && onSuccess) onSuccess();
+  }, [state, onSuccess]);
 
   return (
     <form action={formAction} className="space-y-4 px-5 py-4">
