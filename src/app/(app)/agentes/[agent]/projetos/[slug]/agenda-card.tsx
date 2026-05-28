@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -36,10 +36,25 @@ export function AgendaCard({
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  async function handleDeactivate() {
-    setConfirmOpen(false);
-    await deactivateAgendaAction(agent, slug, agenda.id, agenda.updated_at);
+  function handleDeactivate() {
+    setDeactivateError(null);
+    startTransition(async () => {
+      const result = await deactivateAgendaAction(agent, slug, agenda.id, agenda.updated_at);
+      if (result.ok) {
+        setConfirmOpen(false);
+      } else {
+        setDeactivateError(
+          result.error === 'stale_write'
+            ? 'Esta agenda foi editada por outra pessoa. Recarregue a página.'
+            : result.error === 'worker_timeout' || result.error === 'worker_unreachable'
+              ? 'Serviço de agendamento indisponível. Tente novamente.'
+              : `Erro: ${result.error}`
+        );
+      }
+    });
   }
 
   return (
@@ -85,9 +100,14 @@ export function AgendaCard({
               A agenda fica oculta pro agente, mas histórico de reuniões agendadas é preservado.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deactivateError && (
+            <div className="rounded border border-danger bg-danger/5 p-3 text-sm text-danger" role="alert">
+              {deactivateError}
+            </div>
+          )}
           <AlertDialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Cancelar</Button>
-            <Button onClick={handleDeactivate}>Desativar</Button>
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={isPending}>Cancelar</Button>
+            <Button onClick={handleDeactivate} disabled={isPending}>{isPending ? 'Desativando...' : 'Desativar'}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
