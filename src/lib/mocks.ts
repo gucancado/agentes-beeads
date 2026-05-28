@@ -5,6 +5,8 @@ import type {
   CostPoint,
   TierBucket,
   RecentMessage,
+  Conversation,
+  ConversationThread,
 } from './queries';
 
 export function mockAgentHomeStats(agents: string[]): AgentHomeStats[] {
@@ -65,6 +67,81 @@ export function mockTierBreakdown(): TierBucket[] {
     { tier: 'medium', count: 12, cost: 0.20 },
     { tier: 'high', count: 3, cost: 0.17 },
   ];
+}
+
+export function mockConversations(): Conversation[] {
+  const now = Date.now();
+  return [
+    {
+      identifier: '+5531991648003',
+      pushName: 'Nupad Rosangela',
+      msgCount: 4,
+      lastMessageAt: new Date(now - 2 * 3600_000).toISOString(),
+    },
+    {
+      identifier: '+5531999594121',
+      pushName: 'Gustavo Cançado',
+      msgCount: 4,
+      lastMessageAt: new Date(now - 6 * 3600_000).toISOString(),
+    },
+    {
+      identifier: '+5531971070896',
+      pushName: 'Rodrigo Bee Ads',
+      msgCount: 10,
+      lastMessageAt: new Date(now - 2 * 86400_000).toISOString(),
+    },
+  ];
+}
+
+export function mockConversationThread(identifier: string): ConversationThread {
+  const now = Date.now();
+  const messages = [
+    {
+      id: 1,
+      direction: 'inbound' as const,
+      text: 'Bom dia',
+      createdAt: new Date(now - 60_000).toISOString(),
+      tier: null,
+      model: null,
+      classifierIntent: null,
+      latencyMs: null,
+      respondCost: 0,
+      classifyCost: 0,
+      turnCost: 0,
+    },
+    {
+      id: 2,
+      direction: 'inbound' as const,
+      text: 'Tudo bem?',
+      createdAt: new Date(now - 58_000).toISOString(),
+      tier: null,
+      model: null,
+      classifierIntent: null,
+      latencyMs: null,
+      respondCost: 0,
+      classifyCost: 0,
+      turnCost: 0,
+    },
+    {
+      id: 3,
+      direction: 'outbound' as const,
+      text: 'Oi! Aqui é da equipe BeeAds. Tudo certo por aqui. Em que posso ajudar?',
+      createdAt: new Date(now - 10_000).toISOString(),
+      tier: 'baixo',
+      model: 'claude-haiku-4-5',
+      classifierIntent: 'saudacao_inicial',
+      latencyMs: 1612,
+      respondCost: 0.0058,
+      classifyCost: 0.0021,
+      turnCost: 0.0079,
+    },
+  ];
+  return {
+    identifier,
+    pushName: 'Mock Lead',
+    messages,
+    totalCost: messages.reduce((a, m) => a + m.turnCost, 0),
+  };
 }
 
 export function mockRecentMessages(limit: number): RecentMessage[] {
