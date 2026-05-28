@@ -15,6 +15,8 @@ import {
 import { AgendaForm } from './agenda-form';
 import { AgendaCard } from './agenda-card';
 import { SchedulingErrorBoundary } from './scheduling-error-boundary';
+import { GoogleConnectionCard } from './google-connection-card';
+import type { GoogleConnectionPublic } from '@/lib/worker-admin-client';
 
 type Props = { agent: string; slug: string; displayName: string };
 
@@ -23,16 +25,16 @@ async function ensureProjectExists(
   slug: string,
   displayName: string,
   actingUser: string | null
-): Promise<{ goals: ProjectGoal[]; agendas: SchedulingAgenda[] }> {
+): Promise<{ goals: ProjectGoal[]; agendas: SchedulingAgenda[]; google_connection: GoogleConnectionPublic | null }> {
   // Tenta GET primeiro; só cria se 404. Evita writes em loads repetidos.
   try {
     const detail = await getProjectDetail(agent, slug, { actingUser: actingUser ?? undefined });
-    return { goals: detail.goals, agendas: detail.agendas };
+    return { goals: detail.goals, agendas: detail.agendas, google_connection: detail.google_connection };
   } catch (e) {
     if (e instanceof WorkerAdminError && e.status === 404) {
       await createProject({ agent, slug, display_name: displayName }, { actingUser: actingUser ?? undefined });
       const detail = await getProjectDetail(agent, slug, { actingUser: actingUser ?? undefined });
-      return { goals: detail.goals, agendas: detail.agendas };
+      return { goals: detail.goals, agendas: detail.agendas, google_connection: detail.google_connection };
     }
     throw e;
   }
@@ -42,7 +44,7 @@ async function SchedulingTabInner({ agent, slug, displayName }: Props) {
   const user = await getAuthUser();
   const actingUser = user?.email ?? null;
 
-  const { goals, agendas } = await ensureProjectExists(agent, slug, displayName, actingUser);
+  const { goals, agendas, google_connection } = await ensureProjectExists(agent, slug, displayName, actingUser);
 
   const schedulingGoal = goals.find((g) => g.goal_type === 'scheduling' && g.enabled);
   const activeAgendas = agendas.filter((a) => a.active);
@@ -117,13 +119,7 @@ async function SchedulingTabInner({ agent, slug, displayName }: Props) {
         </form>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-4 space-y-2">
-        <p className="text-sm text-fg">Google Calendar:</p>
-        <Button disabled variant="ghost" size="sm" title="Disponível na Entrega 2 do plano de agendamento">
-          Conectar Google
-          <span className="ml-2 text-xs text-muted-fg">(em breve)</span>
-        </Button>
-      </div>
+      <GoogleConnectionCard agent={agent} slug={slug} connection={google_connection} />
 
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-fg">Agendas</h3>
