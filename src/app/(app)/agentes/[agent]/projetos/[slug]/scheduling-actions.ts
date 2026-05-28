@@ -9,10 +9,16 @@ import {
   createAgenda,
   updateAgenda,
   deactivateAgenda,
+  startGoogleOAuth,
+  disconnectGoogle,
+  testGoogleConnection,
+  testAgendaAccess,
   WorkerAdminError,
   WorkerTimeoutError,
   WorkerUnreachableError,
   StaleWriteError,
+  type GoogleTestResult,
+  type TestAccessResult,
 } from '@/lib/worker-admin-client';
 import { parseAgendaForm } from '@/lib/parse-agenda-form';
 
@@ -158,5 +164,69 @@ export async function deactivateAgendaAction(
     return { ok: true };
   } catch (e) {
     return handleError(e);
+  }
+}
+
+// ── Google OAuth ─────────────────────────────────────────────────────────
+
+export async function startGoogleOAuthAction(
+  agent: string,
+  slug: string
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const user = await actingUserEmail();
+  if (!user) return { ok: false, error: 'unauthorized' };
+  try {
+    const { url } = await startGoogleOAuth(agent, slug, { actingUser: user });
+    return { ok: true, url };
+  } catch (e) {
+    const handled = handleError(e);
+    if (handled.ok) return { ok: false, error: 'unknown' };
+    return { ok: false, error: handled.error };
+  }
+}
+
+export async function disconnectGoogleAction(
+  agent: string,
+  slug: string
+): Promise<ActionResult> {
+  const user = await actingUserEmail();
+  if (!user) return { ok: false, error: 'unauthorized' };
+  try {
+    await disconnectGoogle(agent, slug, { actingUser: user });
+    revalidate(agent, slug);
+    return { ok: true };
+  } catch (e) {
+    return handleError(e);
+  }
+}
+
+export async function testGoogleConnectionAction(
+  agent: string,
+  slug: string
+): Promise<{ ok: true; details: GoogleTestResult } | { ok: false; error: string }> {
+  const user = await actingUserEmail();
+  if (!user) return { ok: false, error: 'unauthorized' };
+  try {
+    const details = await testGoogleConnection(agent, slug, { actingUser: user });
+    return { ok: true, details };
+  } catch (e) {
+    const handled = handleError(e);
+    return handled.ok ? { ok: false, error: 'unknown' } : { ok: false, error: handled.error };
+  }
+}
+
+export async function testAgendaAccessAction(
+  agent: string,
+  slug: string,
+  agendaId: number
+): Promise<{ ok: true; details: TestAccessResult } | { ok: false; error: string }> {
+  const user = await actingUserEmail();
+  if (!user) return { ok: false, error: 'unauthorized' };
+  try {
+    const details = await testAgendaAccess(agent, slug, agendaId, { actingUser: user });
+    return { ok: true, details };
+  } catch (e) {
+    const handled = handleError(e);
+    return handled.ok ? { ok: false, error: 'unknown' } : { ok: false, error: handled.error };
   }
 }
