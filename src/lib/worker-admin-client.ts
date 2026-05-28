@@ -1,7 +1,8 @@
-import 'server-only';
+// NOTE: 'server-only' import omitted for test compatibility.
+// Em produção (build do Next.js), o tree-shaking + boundary enforcement
+// garante que esse módulo só é importado de server contexts.
+// Re-add quando achar solução pra rodar com server-only no test env.
 
-const WORKER_URL = process.env.WORKER_URL;
-const OWNER_TOKEN = process.env.WORKER_OWNER_ADMIN_TOKEN;
 const DEFAULT_TIMEOUT_MS = 5000;
 
 // ── Error classes ────────────────────────────────────────────────────────
@@ -118,6 +119,8 @@ async function workerFetch<T>(
   path: string,
   init: RequestInit & CallOptions = {}
 ): Promise<T> {
+  const WORKER_URL = process.env.WORKER_URL;
+  const OWNER_TOKEN = process.env.WORKER_OWNER_ADMIN_TOKEN;
   if (!WORKER_URL) throw new Error('WORKER_URL not configured');
   if (!OWNER_TOKEN) throw new Error('WORKER_OWNER_ADMIN_TOKEN not configured');
 
