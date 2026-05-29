@@ -30,10 +30,12 @@ export function AgendaCard({
   agent,
   slug,
   agenda,
+  googleConnected,
 }: {
   agent: string;
   slug: string;
   agenda: SchedulingAgenda;
+  googleConnected: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -97,6 +99,7 @@ export function AgendaCard({
         slug={slug}
         mode="edit"
         agenda={agenda}
+        googleConnected={googleConnected}
         open={editOpen}
         onOpenChange={setEditOpen}
       />

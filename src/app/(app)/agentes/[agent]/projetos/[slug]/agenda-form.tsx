@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from 'react';
 import { saveAgendaAction, type ActionResult } from './scheduling-actions';
 import { WorkingHoursEditor } from './working-hours-editor';
+import { CalendarPicker } from './calendar-picker';
 import type { SchedulingAgenda } from '@/lib/worker-admin-client';
 
 type Props = {
@@ -10,10 +11,11 @@ type Props = {
   slug: string;
   mode: 'create' | 'edit';
   agenda?: SchedulingAgenda;
+  googleConnected: boolean;
   onSuccess?: () => void;
 };
 
-export function AgendaForm({ agent, slug, mode, agenda, onSuccess }: Props) {
+export function AgendaForm({ agent, slug, mode, agenda, googleConnected, onSuccess }: Props) {
   const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(
     saveAgendaAction,
     null
@@ -53,19 +55,15 @@ export function AgendaForm({ agent, slug, mode, agenda, onSuccess }: Props) {
 
       <div className="space-y-1">
         <label htmlFor="person_email" className="text-sm font-medium text-fg">
-          Email do calendar
+          Calendar Google
         </label>
-        <input
-          id="person_email"
+        <CalendarPicker
+          agent={agent}
+          slug={slug}
           name="person_email"
-          type="email"
-          required
-          defaultValue={agenda?.person_email ?? ''}
-          className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-fg"
+          initialValue={agenda?.person_email}
+          googleConnected={googleConnected}
         />
-        <p className="text-xs text-muted-fg">
-          Email do calendar Google. Será compartilhado com o email do agente na Entrega 2.
-        </p>
       </div>
 
       <div className="space-y-1">
