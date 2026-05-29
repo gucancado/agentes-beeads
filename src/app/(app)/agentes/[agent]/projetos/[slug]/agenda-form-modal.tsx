@@ -9,6 +9,7 @@ export function AgendaFormModal({
   slug,
   mode,
   agenda,
+  googleConnected,
   open,
   onOpenChange,
 }: {
@@ -16,6 +17,7 @@ export function AgendaFormModal({
   slug: string;
   mode: 'create' | 'edit';
   agenda?: SchedulingAgenda;
+  googleConnected: boolean;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
@@ -25,7 +27,14 @@ export function AgendaFormModal({
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Nova agenda' : 'Editar agenda'}</DialogTitle>
         </DialogHeader>
-        <AgendaForm agent={agent} slug={slug} mode={mode} agenda={agenda} onSuccess={() => onOpenChange(false)} />
+        <AgendaForm
+          agent={agent}
+          slug={slug}
+          mode={mode}
+          agenda={agenda}
+          googleConnected={googleConnected}
+          onSuccess={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );

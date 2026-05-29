@@ -351,3 +351,23 @@ export async function testAgendaAccess(
     ...opts,
   });
 }
+
+export type GoogleCalendarOption = {
+  id: string;
+  summary: string;
+  timeZone: string;
+  primary: boolean;
+  accessRole: string;
+  writable: boolean;
+};
+
+export async function listGoogleCalendars(
+  agent: string,
+  slug: string,
+  opts: CallOptions = {}
+): Promise<{ calendars: GoogleCalendarOption[] }> {
+  return workerFetch(`${basePath(agent, slug)}/google/calendars`, {
+    method: 'GET',
+    ...opts,
+  });
+}

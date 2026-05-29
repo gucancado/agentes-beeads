@@ -13,12 +13,14 @@ import {
   disconnectGoogle,
   testGoogleConnection,
   testAgendaAccess,
+  listGoogleCalendars,
   WorkerAdminError,
   WorkerTimeoutError,
   WorkerUnreachableError,
   StaleWriteError,
   type GoogleTestResult,
   type TestAccessResult,
+  type GoogleCalendarOption,
 } from '@/lib/worker-admin-client';
 import { parseAgendaForm } from '@/lib/parse-agenda-form';
 
@@ -225,6 +227,20 @@ export async function testAgendaAccessAction(
   try {
     const details = await testAgendaAccess(agent, slug, agendaId, { actingUser: user });
     return { ok: true, details };
+  } catch (e) {
+    const handled = handleError(e);
+    return handled.ok ? { ok: false, error: 'unknown' } : { ok: false, error: handled.error };
+  }
+}
+
+export async function listCalendarsAction(
+  args: { agent: string; slug: string }
+): Promise<{ ok: true; calendars: GoogleCalendarOption[] } | { ok: false; error: string }> {
+  const user = await actingUserEmail();
+  if (!user) return { ok: false, error: 'unauthorized' };
+  try {
+    const { calendars } = await listGoogleCalendars(args.agent, args.slug, { actingUser: user });
+    return { ok: true, calendars };
   } catch (e) {
     const handled = handleError(e);
     return handled.ok ? { ok: false, error: 'unknown' } : { ok: false, error: handled.error };

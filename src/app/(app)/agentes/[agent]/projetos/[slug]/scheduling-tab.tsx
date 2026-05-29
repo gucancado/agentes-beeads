@@ -92,7 +92,12 @@ async function SchedulingTabInner({ agent, slug, displayName }: Props) {
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card">
-          <AgendaForm agent={agent} slug={slug} mode="create" />
+          <AgendaForm
+            agent={agent}
+            slug={slug}
+            mode="create"
+            googleConnected={google_connection !== null}
+          />
         </div>
       </div>
     );
@@ -124,7 +129,13 @@ async function SchedulingTabInner({ agent, slug, displayName }: Props) {
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-fg">Agendas</h3>
         {activeAgendas.map((agenda) => (
-          <AgendaCard key={agenda.id} agent={agent} slug={slug} agenda={agenda} />
+          <AgendaCard
+            key={agenda.id}
+            agent={agent}
+            slug={slug}
+            agenda={agenda}
+            googleConnected={google_connection !== null}
+          />
         ))}
       </div>
     </div>
