@@ -14,12 +14,12 @@ export async function ConversasView({
   const conversations = await fetchConversations(agent, slug);
 
   return (
-    <div className="grid lg:grid-cols-[320px_1fr] border border-border rounded-md bg-card overflow-hidden min-h-[60vh]">
-      <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-y-auto max-h-[70vh] lg:max-h-[calc(100vh-280px)]">
+    <div className="grid lg:grid-cols-[320px_1fr] border border-border rounded-md bg-card overflow-hidden h-full">
+      <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-y-auto min-h-0">
         <ConversationsList conversations={conversations} selectedConv={selectedConv} />
       </aside>
 
-      <main className="min-w-0">
+      <main className="min-w-0 overflow-hidden flex flex-col">
         {selectedConv ? (
           <ConversationThread agent={agent} slug={slug} identifier={selectedConv} />
         ) : (
