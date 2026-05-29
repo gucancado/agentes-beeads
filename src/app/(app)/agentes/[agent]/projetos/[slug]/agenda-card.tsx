@@ -11,6 +11,7 @@ import {
   Button,
 } from '@beeads/ui';
 import { deactivateAgendaAction } from './scheduling-actions';
+import { AgendaTestAccessButton } from './agenda-test-access-button';
 import { AgendaFormModal } from './agenda-form-modal';
 import type { SchedulingAgenda } from '@/lib/worker-admin-client';
 import { DAY_LABELS_PT, type Day } from '@/lib/working-hours';
@@ -72,6 +73,14 @@ export function AgendaCard({
             {agenda.meeting_duration_min}min • antec. {agenda.min_advance_hours}h–
             {agenda.max_advance_business_days}d úteis
           </p>
+          <div className="pt-2">
+            <AgendaTestAccessButton
+              agent={agent}
+              slug={slug}
+              agendaId={agenda.id}
+              personEmail={agenda.person_email}
+            />
+          </div>
         </div>
         <div className="flex gap-2 shrink-0">
           <Button variant="ghost" size="sm" onClick={() => setEditOpen(true)}>

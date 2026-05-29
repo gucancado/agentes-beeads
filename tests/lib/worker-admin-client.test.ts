@@ -138,3 +138,52 @@ test('erro 5xx vira WorkerAdminError (não Timeout/Unreachable)', async () => {
     }
   );
 });
+
+test('startGoogleOAuth: POST /admin/.../google/oauth-start', async () => {
+  nextResponse = { status: 200, body: JSON.stringify({ url: 'https://accounts.google.com/...' }) };
+  const { startGoogleOAuth } = await import('../../src/lib/worker-admin-client.js');
+  const result = await startGoogleOAuth('mercurio', 'acme');
+  assert.equal(result.url, 'https://accounts.google.com/...');
+  assert.match(captured[0]!.url, /\/admin\/agents\/mercurio\/projects\/acme\/google\/oauth-start$/);
+  assert.equal((captured[0]!.init as RequestInit).method, 'POST');
+});
+
+test('disconnectGoogle: POST /admin/.../google/disconnect', async () => {
+  nextResponse = { status: 200, body: JSON.stringify({ ok: true }) };
+  const { disconnectGoogle } = await import('../../src/lib/worker-admin-client.js');
+  const result = await disconnectGoogle('mercurio', 'acme');
+  assert.equal(result.ok, true);
+  assert.match(captured[0]!.url, /\/google\/disconnect$/);
+});
+
+test('testGoogleConnection: retorna estrutura completa', async () => {
+  nextResponse = { status: 200, body: JSON.stringify({
+    ok: true,
+    email: 'comercial@beeads.com.br',
+    calendar_ok: true,
+    gmail_ok: true,
+    scopes_granted: ['calendar.events', 'gmail.send'],
+    scope_warnings: [],
+  })};
+  const { testGoogleConnection } = await import('../../src/lib/worker-admin-client.js');
+  const result = await testGoogleConnection('mercurio', 'acme');
+  assert.equal(result.calendar_ok, true);
+  assert.equal(result.gmail_ok, true);
+  assert.deepEqual(result.scope_warnings, []);
+});
+
+test('testAgendaAccess: 403 not_shared', async () => {
+  nextResponse = { status: 200, body: JSON.stringify({
+    ok: false,
+    error: 'not_shared',
+    detail: 'Forbidden',
+    agent_email: 'comercial@beeads.com.br',
+  })};
+  const { testAgendaAccess } = await import('../../src/lib/worker-admin-client.js');
+  const result = await testAgendaAccess('mercurio', 'acme', 42);
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.error, 'not_shared');
+    assert.equal(result.agent_email, 'comercial@beeads.com.br');
+  }
+});

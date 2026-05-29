@@ -1,5 +1,6 @@
 import { fetchConversationThread } from '@/lib/stats-service';
 import type { ConversationMessage } from '@/lib/queries';
+import { ThreadScrollContainer } from './thread-scroll-container';
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -43,8 +44,8 @@ export async function ConversationThread({
   const lastMessageAt = messages.length > 0 ? messages[messages.length - 1].createdAt : null;
 
   return (
-    <div className="flex flex-col h-full">
-      <header className="border-b border-border px-5 py-3 bg-card">
+    <div className="flex flex-col h-full overflow-hidden">
+      <header className="border-b border-border px-5 py-3 bg-card flex-shrink-0">
         <div className="flex items-baseline justify-between gap-4">
           <div className="min-w-0">
             <h2 className="font-display text-lg font-medium text-fg truncate">
@@ -66,13 +67,13 @@ export async function ConversationThread({
         </div>
       </header>
 
-      <ol className="flex-1 overflow-y-auto px-5 py-6 space-y-4 bg-bg/40">
+      <ThreadScrollContainer dataKey={identifier}>
         {messages.length === 0 ? (
           <li className="text-center text-sm text-muted-fg">Sem mensagens nesta conversa.</li>
         ) : (
           messages.map((m) => <Bubble key={m.id} message={m} />)
         )}
-      </ol>
+      </ThreadScrollContainer>
     </div>
   );
 }

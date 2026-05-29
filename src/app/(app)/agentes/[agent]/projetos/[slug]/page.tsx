@@ -178,9 +178,9 @@ export default async function ProjectDetail({
   );
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-6 min-w-0">
-        <div>
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-w-0">
+        <div className="flex-shrink-0 space-y-6 pb-4">
           {/* Breadcrumb sem barra final pendurada */}
           <nav className="flex items-center gap-2 text-[11px] text-muted-fg tracking-wide">
             <Link href="/agentes" className="hover:text-fg transition-colors">
@@ -248,27 +248,27 @@ export default async function ProjectDetail({
           </div>
         </div>
 
-        <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="mb-2">
+        <Tabs defaultValue={defaultTab} className="w-full flex-1 min-h-0 flex flex-col">
+          <TabsList className="mb-2 flex-shrink-0">
             <TabsTrigger value="operacao">Operação</TabsTrigger>
             <TabsTrigger value="conversas">Conversas</TabsTrigger>
             <TabsTrigger value="config">Configuração</TabsTrigger>
             <TabsTrigger value="agendamento">Agendamento</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="operacao" className="space-y-6 mt-4" keepMounted>
+          <TabsContent value="operacao" className="space-y-6 mt-4 flex-1 min-h-0 overflow-y-auto pr-1" keepMounted>
             {operacaoContent}
           </TabsContent>
 
-          <TabsContent value="conversas" className="mt-4" keepMounted>
+          <TabsContent value="conversas" className="mt-4 flex-1 min-h-0" keepMounted>
             <ConversasView agent={agent} slug={slug} selectedConv={selectedConv} />
           </TabsContent>
 
-          <TabsContent value="config" className="space-y-6 mt-4" keepMounted>
+          <TabsContent value="config" className="space-y-6 mt-4 flex-1 min-h-0 overflow-y-auto pr-1" keepMounted>
             {configContent}
           </TabsContent>
 
-          <TabsContent value="agendamento">
+          <TabsContent value="agendamento" className="flex-1 min-h-0 overflow-y-auto pr-1">
             <SchedulingTab
               agent={agent}
               slug={slug}
