@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import { listCalendarsAction } from './scheduling-actions';
 import type { GoogleCalendarOption } from '@/lib/worker-admin-client';
 
 type Props = {
   agent: string;
   slug: string;
-  name: string; // nome do campo no FormData
-  initialValue?: string; // email atual da agenda (modo edit)
-  googleConnected: boolean; // se false, mostra apenas o input livre + aviso
+  name: string;
+  initialValue?: string;
+  googleConnected: boolean;
 };
 
 type LoadState =
@@ -19,151 +19,139 @@ type LoadState =
   | { kind: 'err'; message: string };
 
 /**
- * Picker de calendar. Quando OAuth conectado, carrega calendars acessíveis e
- * mostra <select>. Se OAuth não conectado, cai pro input livre. Permite
- * digitar email manualmente via toggle (útil pra debug ou casos legacy).
+ * Input de calendar com sugestões. Sempre mostra um input de texto livre
+ * (permite digitar ID qualquer), e abaixo lista chips com calendars
+ * acessíveis pela conexão OAuth — clicar preenche o input.
  */
 export function CalendarPicker({ agent, slug, name, initialValue, googleConnected }: Props) {
-  const [state, setState] = useState<LoadState>({ kind: 'idle' });
-  const [pending, startTransition] = useTransition();
-  const [manual, setManual] = useState(false);
   const [value, setValue] = useState(initialValue ?? '');
+  const [state, setState] = useState<LoadState>({ kind: 'idle' });
 
   useEffect(() => {
     if (!googleConnected) return;
+    let cancelled = false;
     setState({ kind: 'loading' });
-    startTransition(async () => {
-      const result = await listCalendarsAction({ agent, slug });
-      if (result.ok) {
-        setState({ kind: 'ok', calendars: result.calendars });
-        // Se initial value não está na lista, força manual mode
-        if (initialValue && !result.calendars.some((c) => c.id === initialValue)) {
-          setManual(true);
+    (async () => {
+      try {
+        const result = await listCalendarsAction({ agent, slug });
+        if (cancelled) return;
+        if (result.ok) {
+          setState({ kind: 'ok', calendars: result.calendars });
+        } else {
+          setState({ kind: 'err', message: result.error });
         }
-      } else {
-        setState({ kind: 'err', message: result.error });
+      } catch (err) {
+        if (cancelled) return;
+        setState({ kind: 'err', message: (err as Error).message });
       }
-    });
-  }, [agent, slug, googleConnected, initialValue]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [agent, slug, googleConnected]);
 
-  if (!googleConnected) {
-    return (
-      <div className="space-y-1">
-        <input
-          type="email"
-          name={name}
-          required
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-fg"
-        />
+  const writable =
+    state.kind === 'ok' ? state.calendars.filter((c) => c.writable) : [];
+  const readonly =
+    state.kind === 'ok' ? state.calendars.filter((c) => !c.writable) : [];
+  const valueInList =
+    state.kind === 'ok' && state.calendars.some((c) => c.id === value);
+
+  return (
+    <div className="space-y-2">
+      <input
+        type="text"
+        name={name}
+        required
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="email@dominio.com ou xxx@group.calendar.google.com"
+        className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-fg"
+      />
+
+      {!googleConnected && (
         <p className="text-xs text-muted-fg">
-          Conecte uma conta Google primeiro pra listar calendars disponíveis.
+          Conecte uma conta Google primeiro pra ver calendars disponíveis.
         </p>
-      </div>
-    );
-  }
+      )}
 
-  if (state.kind === 'loading' || pending) {
-    return (
-      <div className="space-y-1">
-        <div className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-muted-fg">
-          Carregando calendars…
-        </div>
-        <input type="hidden" name={name} value={value} />
-      </div>
-    );
-  }
+      {state.kind === 'loading' && (
+        <p className="text-xs text-muted-fg">Buscando calendars disponíveis…</p>
+      )}
 
-  if (state.kind === 'err') {
-    return (
-      <div className="space-y-1">
-        <input
-          type="email"
-          name={name}
-          required
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-fg"
-        />
+      {state.kind === 'err' && (
         <p className="text-xs text-danger">
-          Erro carregando lista de calendars ({state.message}). Digite o ID manualmente.
+          Erro buscando calendars ({state.message}). Você pode digitar o ID manualmente.
         </p>
-      </div>
-    );
-  }
+      )}
 
-  if (state.kind === 'ok') {
-    const writable = state.calendars.filter((c) => c.writable);
-    const readonly = state.calendars.filter((c) => !c.writable);
+      {state.kind === 'ok' && value && !valueInList && (
+        <p className="text-xs text-warning">
+          ⚠ O calendar atual (<code>{value}</code>) não está entre os acessíveis pela
+          conexão. Pode estar incorreto ou sem permissão de escrita.
+        </p>
+      )}
 
-    if (manual) {
-      return (
-        <div className="space-y-1">
-          <input
-            type="email"
-            name={name}
-            required
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="email@dominio.com ou xxx@group.calendar.google.com"
-            className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-fg"
-          />
-          <button
-            type="button"
-            onClick={() => setManual(false)}
-            className="text-xs text-muted-fg underline hover:text-fg"
-          >
-            Voltar pra dropdown
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-1">
-        <select
-          name={name}
-          required
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded border border-border bg-paper px-3 py-2 text-sm text-fg"
-        >
-          <option value="" disabled>
-            Selecione um calendar…
-          </option>
-          {writable.length > 0 && (
-            <optgroup label="Calendars com permissão de escrita (recomendado)">
-              {writable.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.summary} {c.primary ? '(primário)' : ''} — {c.id}
-                </option>
-              ))}
-            </optgroup>
-          )}
-          {readonly.length > 0 && (
-            <optgroup label="Calendars somente leitura (agente não conseguirá criar eventos)">
-              {readonly.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.summary} — {c.id}
-                </option>
-              ))}
-            </optgroup>
-          )}
-        </select>
+      {state.kind === 'ok' && state.calendars.length === 0 && (
         <p className="text-xs text-muted-fg">
-          Recomendado: calendar com permissão de escrita (writer/owner).{' '}
-          <button
-            type="button"
-            onClick={() => setManual(true)}
-            className="underline hover:text-fg"
-          >
-            Digitar ID manualmente
-          </button>
+          Nenhum calendar encontrado pra esta conta. Verifique o acesso no Google Calendar.
         </p>
-      </div>
-    );
-  }
+      )}
 
-  return null;
+      {state.kind === 'ok' && state.calendars.length > 0 && (
+        <div className="space-y-1.5">
+          {writable.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-fg">
+                ✓ Calendars com permissão de escrita
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {writable.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setValue(c.id)}
+                    className={`rounded border px-2 py-1 text-xs hover:bg-paper-deep ${
+                      value === c.id
+                        ? 'border-honey-deep bg-honey/10 text-fg'
+                        : 'border-border bg-paper text-fg'
+                    }`}
+                    title={c.id}
+                  >
+                    {c.summary || c.id}
+                    {c.primary && ' ★'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {readonly.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-fg">
+                Calendars só leitura (agente não consegue criar eventos)
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {readonly.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setValue(c.id)}
+                    className={`rounded border px-2 py-1 text-xs hover:bg-paper-deep ${
+                      value === c.id
+                        ? 'border-warning bg-warning/10 text-fg'
+                        : 'border-border bg-paper text-muted-fg'
+                    }`}
+                    title={c.id}
+                  >
+                    {c.summary || c.id}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
