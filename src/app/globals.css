@@ -3,6 +3,14 @@
 @import "@beeads/ui/styles.css";
 @import "@beeads/charts/styles.css";
 
+/* Tailwind v4 não escaneia node_modules por default. As classes usadas pelos
+   componentes do @beeads/ui (Dialog, AlertDialog, etc) precisam ser explicitamente
+   escaneadas pra serem geradas. Sem isso o modal renderiza sem fixed/center/backdrop. */
+@source "../../node_modules/@beeads/ui/dist/index.js";
+@source "../../node_modules/@beeads/ui/dist/index.mjs";
+@source "../../node_modules/@beeads/charts/dist/index.js";
+@source "../../node_modules/@beeads/charts/dist/index.mjs";
+
 /* Override: Tailwind v4 needs literal values in @theme for media-query breakpoints.
    @beeads/tokens declares --breakpoint-3xl: var(--breakpoint-3xl) which produces
    @media (width >= var(...)), unsupported by current PostCSS/browsers. */
