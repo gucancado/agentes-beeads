@@ -3,6 +3,8 @@ import 'server-only';
 const BLOQUIM_BASE =
   process.env.BLOQUIM_API_URL ?? 'https://bloquim.beeads.com.br/api';
 
+const BLOQUIM_ORIGIN = BLOQUIM_BASE.replace(/\/api\/?$/, '');
+
 export interface MeWorkspace {
   id: string;
   name: string;
@@ -60,7 +62,11 @@ export interface BloquimProfile {
 
 export async function meProfile(cookie: string): Promise<BloquimProfile | null> {
   try {
-    return await bloquimGet<BloquimProfile>('/auth/me', cookie);
+    const profile = await bloquimGet<BloquimProfile>('/auth/me', cookie);
+    if (profile.avatarUrl && profile.avatarUrl.startsWith('/')) {
+      profile.avatarUrl = `${BLOQUIM_ORIGIN}${profile.avatarUrl}`;
+    }
+    return profile;
   } catch {
     return null;
   }
