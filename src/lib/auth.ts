@@ -25,7 +25,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   if (!token) return null;
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as JwtPayload;
     const userId = payload.userId ?? payload.sub;
     if (!userId) return null;
     return { userId, email: payload.email };
@@ -50,9 +50,8 @@ export async function getCurrentUrl(): Promise<string> {
   const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'agentes.beeads.com.br';
   const proto = h.get('x-forwarded-proto') ?? 'https';
   const pathname = h.get('x-pathname') ?? '/';
-  const safeHost = host.startsWith('0.0.0.0') || host.startsWith('localhost') || host.startsWith('127.0.0.1')
-    ? 'agentes.beeads.com.br'
-    : host;
+  const ALLOWED_HOST = /^([a-z0-9-]+\.)*beeads\.com\.br$/;
+  const safeHost = ALLOWED_HOST.test(host) ? host : 'agentes.beeads.com.br';
   const safeProto = safeHost === 'agentes.beeads.com.br' ? 'https' : proto;
   return `${safeProto}://${safeHost}${pathname}`;
 }
