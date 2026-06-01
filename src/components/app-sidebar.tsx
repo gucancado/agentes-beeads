@@ -79,7 +79,10 @@ export function AppSidebar({
         <SidebarFooter
           user={user}
           onLogout={() => {
-            window.location.assign("https://bloquim.beeads.com.br/login");
+            window.location.assign(
+              "https://bloquim.beeads.com.br/api/auth/logout?return_url=" +
+                encodeURIComponent("https://bloquim.beeads.com.br/login"),
+            );
           }}
         />
       </Sidebar>
