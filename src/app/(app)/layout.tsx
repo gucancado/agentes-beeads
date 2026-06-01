@@ -21,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const sidebarUser = {
     name: profile?.name ?? user.email,
     email: profile?.email ?? user.email,
-    avatarUrl: profile?.avatarUrl ?? null,
+    avatarUrl: profile?.avatarUrl ? "/api/me/avatar" : null,
   };
 
   return (
