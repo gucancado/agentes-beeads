@@ -50,3 +50,18 @@ export async function publicWorkspaces(
   const idsParam = ids.join(',');
   return bloquimGet<PublicWorkspace[]>(`/public/workspaces?ids=${idsParam}`, cookie);
 }
+
+export interface BloquimProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
+export async function meProfile(cookie: string): Promise<BloquimProfile | null> {
+  try {
+    return await bloquimGet<BloquimProfile>('/auth/me', cookie);
+  } catch {
+    return null;
+  }
+}

@@ -1,0 +1,7 @@
+allowBuilds:
+  esbuild: set this to true or false
+  msw: set this to true or false
+  sharp: set this to true or false
+minimumReleaseAgeExclude:
+  - '@beeads/tokens@0.2.0'
+  - '@beeads/ui@0.3.0'
