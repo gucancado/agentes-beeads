@@ -2,8 +2,14 @@ import 'server-only';
 import { cookies, headers } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
-if (!JWT_SECRET) throw new Error('JWT_SECRET env var is required');
+// Lazy: lido no runtime (não no import). Assim a env não precisa estar
+// disponível em build-time — evita quebrar o `next build` (page-data collection
+// avalia os módulos das rotas) quando o JWT_SECRET é runtime-only no Coolify.
+function jwtSecret(): string {
+  const s = process.env.JWT_SECRET;
+  if (!s) throw new Error('JWT_SECRET env var is required');
+  return s;
+}
 
 export interface AuthUser {
   userId: string;
@@ -25,7 +31,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   if (!token) return null;
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as JwtPayload;
+    const payload = jwt.verify(token, jwtSecret(), { algorithms: ["HS256"] }) as JwtPayload;
     const userId = payload.userId ?? payload.sub;
     if (!userId) return null;
     return { userId, email: payload.email };
