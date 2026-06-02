@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 
 const BLOQUIM_BASE =
   process.env.BLOQUIM_API_URL ?? 'https://bloquim.beeads.com.br/api';
@@ -60,14 +61,16 @@ export interface BloquimProfile {
   avatarUrl: string | null;
 }
 
-export async function meProfile(cookie: string): Promise<BloquimProfile | null> {
-  try {
-    const profile = await bloquimGet<BloquimProfile>('/auth/me', cookie);
-    if (profile.avatarUrl && profile.avatarUrl.startsWith('/')) {
-      profile.avatarUrl = `${BLOQUIM_ORIGIN}${profile.avatarUrl}`;
+export const meProfile = cache(
+  async (cookie: string): Promise<BloquimProfile | null> => {
+    try {
+      const profile = await bloquimGet<BloquimProfile>('/auth/me', cookie);
+      if (profile.avatarUrl && profile.avatarUrl.startsWith('/')) {
+        profile.avatarUrl = `${BLOQUIM_ORIGIN}${profile.avatarUrl}`;
+      }
+      return profile;
+    } catch {
+      return null;
     }
-    return profile;
-  } catch {
-    return null;
-  }
-}
+  },
+);
