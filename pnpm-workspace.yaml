@@ -3,5 +3,4 @@ allowBuilds:
   msw: set this to true or false
   sharp: set this to true or false
 minimumReleaseAgeExclude:
-  - '@beeads/tokens@0.2.0'
-  - '@beeads/ui@0.3.0'
+  - '@beeads/*'
