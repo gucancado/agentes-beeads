@@ -46,3 +46,11 @@ export async function fetchConversationThread(agent: string, project: string, id
   if (useMock()) return m.mockConversationThread(identifier);
   return q.getConversationThread(getPool(), agent, project, identifier);
 }
+
+export async function fetchGroups(agent: string) {
+  return q.getGroups(getPool(), agent);
+}
+
+export async function fetchGroupThread(agent: string, jid: string) {
+  return q.getGroupThread(getPool(), agent, jid);
+}

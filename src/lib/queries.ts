@@ -72,6 +72,29 @@ type Querier = {
   query: (sql: string, params?: unknown[]) => Promise<{ rows: unknown[] }>;
 };
 
+export type WhatsappGroupItem = {
+  jid: string;
+  subject: string | null;
+  project: string | null;
+  msgCount: number;
+  lastMessageAt: string | null;
+};
+
+export type GroupMessage = {
+  id: number;
+  author: string | null;
+  pushName: string | null;
+  text: string;
+  createdAt: string;
+};
+
+export type GroupThread = {
+  jid: string;
+  subject: string | null;
+  project: string | null;
+  messages: GroupMessage[];
+};
+
 function num(v: unknown, fallback = 0): number {
   if (v === null || v === undefined) return fallback;
   const n = typeof v === 'number' ? v : parseFloat(String(v));
@@ -355,4 +378,58 @@ export async function getConversationThread(
     messages,
     totalCost,
   };
+}
+
+// ── Grupos WhatsApp (auditor / saturno) ───────────────────────────────────
+
+export async function getGroups(pool: Querier, agent: string): Promise<WhatsappGroupItem[]> {
+  const { rows } = await pool.query(
+    `
+    SELECT g.jid, g.subject, g.project,
+           COALESCE(m.cnt, 0)::int AS msg_count,
+           m.last_at
+    FROM whatsapp_groups g
+    LEFT JOIN (
+      SELECT identifier, COUNT(*) AS cnt, MAX(created_at) AS last_at
+        FROM messages
+       WHERE agent = $1 AND direction = 'inbound' AND author IS NOT NULL
+       GROUP BY identifier
+    ) m ON m.identifier = g.jid
+    WHERE g.agent = $1
+    ORDER BY m.last_at DESC NULLS LAST, g.subject ASC NULLS LAST
+    `,
+    [agent]
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    jid: String(r.jid),
+    subject: strOrNull(r.subject),
+    project: strOrNull(r.project),
+    msgCount: num(r.msg_count),
+    lastMessageAt: strOrNull(r.last_at),
+  }));
+}
+
+export async function getGroupThread(pool: Querier, agent: string, jid: string): Promise<GroupThread> {
+  const [msgsResp, metaResp] = await Promise.all([
+    pool.query(
+      `
+      SELECT id, author, push_name, message_text, created_at
+        FROM webhook_logs
+       WHERE agent = $1 AND identifier = $2 AND author IS NOT NULL
+       ORDER BY created_at ASC
+       LIMIT 300
+      `,
+      [agent, jid]
+    ),
+    pool.query(`SELECT subject, project FROM whatsapp_groups WHERE agent = $1 AND jid = $2`, [agent, jid]),
+  ]);
+  const meta = (metaResp.rows[0] ?? {}) as Record<string, unknown>;
+  const messages: GroupMessage[] = (msgsResp.rows as Record<string, unknown>[]).map((r) => ({
+    id: num(r.id),
+    author: strOrNull(r.author),
+    pushName: strOrNull(r.push_name),
+    text: r.message_text == null ? '' : String(r.message_text),
+    createdAt: String(r.created_at),
+  }));
+  return { jid, subject: strOrNull(meta.subject), project: strOrNull(meta.project), messages };
 }

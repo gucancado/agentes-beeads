@@ -62,6 +62,14 @@ export default async function AgentDetail({
             healthy
           </span>
         </div>
+        <div className="mt-3">
+          <Link
+            href={`/agentes/${agent}/grupos`}
+            className="inline-flex items-center gap-1.5 text-xs text-honey-deep hover:underline"
+          >
+            grupos monitorados <span aria-hidden>→</span>
+          </Link>
+        </div>
       </div>
 
       <SectionCard title="Métricas dos últimos" titleAccent="7 dias" meta="janela 7d">
