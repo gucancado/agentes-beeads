@@ -14,8 +14,4 @@ agents:
   - name: saturno
     repo: gucancado/agente-saturno
     enabled: true
-    models:
-      classifier: claude-sonnet-4-6
-      responder_baixo: claude-sonnet-4-6
-      responder_medio: claude-sonnet-4-6
-      responder_alto: claude-sonnet-4-6
+    kind: auditor

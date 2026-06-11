@@ -59,6 +59,7 @@ export async function loadAccessibleAgents(cookie: string): Promise<AccessibleAg
       name: a.agentName,
       repo: yml?.repo ?? a.agentName,
       enabled: yml?.enabled ?? true,
+      kind: yml?.kind ?? 'reactive',
       models: yml?.models,
       project_overrides: yml?.project_overrides,
       // Bloquim membership info

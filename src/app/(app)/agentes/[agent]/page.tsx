@@ -5,6 +5,7 @@ import {
   fetchAgentDetailStats,
   fetchCostTimeseries,
   fetchTierBreakdown,
+  fetchGroups,
 } from '@/lib/stats-service';
 import { StatCard } from '@/components/stat-card';
 import { CostTimeseriesChart } from '@/components/cost-timeseries-chart';
@@ -32,6 +33,11 @@ export default async function AgentDetail({
   const registry = loadRegistry();
   const found = registry.agents.find((a) => a.name === agent && a.enabled);
   if (!found) notFound();
+
+  // Agente auditor (sweep/saturno): GUI de monitoramento, não SDR.
+  if (found.kind === 'auditor') {
+    return <AuditorDetail agent={agent} repo={found.repo} />;
+  }
 
   const [detail, timeseries, tiers] = await Promise.all([
     fetchAgentDetailStats(agent),
@@ -132,6 +138,98 @@ export default async function AgentDetail({
             ))}
           </ul>
         )}
+      </SectionCard>
+    </div>
+  );
+}
+
+/**
+ * Dashboard de agente AUDITOR (sweep/saturno). Sem tiers/responder/conversa 1:1.
+ * Foca em: intake de grupos, projetos auditados, e (em breve) alertas/regras.
+ */
+async function AuditorDetail({ agent, repo }: { agent: string; repo: string }) {
+  const [detail, groups] = await Promise.all([
+    fetchAgentDetailStats(agent),
+    fetchGroups(agent),
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/agentes" className="text-[11px] text-muted-fg hover:text-fg">
+          ← agentes
+        </Link>
+        <h1 className="font-display text-4xl font-medium tracking-tight text-fg mt-1 capitalize">
+          {agent}
+        </h1>
+        <div className="mt-3 flex items-center justify-between flex-wrap gap-4 py-3 border-t border-b border-border">
+          <span className="inline-flex items-baseline gap-1.5 text-xs">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-fg">repo</span>
+            <span className="text-fg">{repo}</span>
+          </span>
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-honey/30 bg-honey/8 text-[10px] uppercase tracking-[0.14em] text-honey-deep">
+            auditor
+          </span>
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-ok/30 bg-ok/8 text-[11px] text-ok font-medium tracking-wide">
+            <span className="size-1.5 rounded-full bg-ok status-pulse" />
+            healthy
+          </span>
+        </div>
+        <div className="mt-3">
+          <Link
+            href={`/agentes/${agent}/grupos`}
+            className="inline-flex items-center gap-1.5 text-xs text-honey-deep hover:underline"
+          >
+            grupos monitorados <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </div>
+
+      <SectionCard title="Monitoramento" titleAccent="7 dias" meta="intake">
+        <div className="grid grid-cols-2 md:grid-cols-3">
+          <StatCard label="msgs ingeridas" value={detail.totals.msgsIn7d} />
+          <StatCard label="grupos" value={groups.length} />
+          <StatCard label="projetos" value={detail.projects.length} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Projetos" titleAccent="auditados" meta={`${detail.projects.length} com atividade 7d`}>
+        {detail.projects.length === 0 ? (
+          <p className="px-5 py-4 text-sm text-muted-fg">Nenhum projeto com mensagens ingeridas nos últimos 7d.</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {detail.projects.map((p) => (
+              <li key={p.project}>
+                <Link
+                  href={`/agentes/${agent}/projetos/${p.project}`}
+                  className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 px-5 py-3.5 hover:bg-muted transition group"
+                >
+                  <span className="font-display italic text-lg font-medium text-fg flex-1 min-w-[180px]">
+                    {p.project}
+                  </span>
+                  <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-xs tabular-nums">
+                    <span className="text-muted-fg">
+                      <span>msgs 24h </span>
+                      <span className="text-fg">{p.msgsIn24h}</span>
+                    </span>
+                    <span className="text-muted-fg">
+                      <span>última </span>
+                      <span className="text-fg">{timeAgo(p.lastMessageAt)}</span>
+                    </span>
+                  </div>
+                  <span className="text-honey-deep group-hover:translate-x-0.5 transition-transform" aria-hidden>→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Alertas &" titleAccent="regras" meta="em breve">
+        <p className="px-5 py-4 text-sm text-muted-fg">
+          Quando o saturno começar a agir, os alertas gerados (WhatsApp / email / Bloquim) e as regras
+          disparadas aparecem aqui.
+        </p>
       </SectionCard>
     </div>
   );

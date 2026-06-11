@@ -15,10 +15,18 @@ const ProjectOverrideSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
+/**
+ * Tipo de operação do agente — define a forma da GUI:
+ *  - 'reactive' (SDR/mercurio): atende leads 1:1, tem tiers de responder,
+ *    conversas, QR de instância, custo por tier.
+ *  - 'auditor' (sweep/saturno): monitora projetos ponta a ponta, ingere grupos,
+ *    gera alertas. Não tem responder/tier/conversa 1:1.
+ */
 const AgentSchema = z.object({
   name: z.string().min(1),
   repo: z.string().min(1),
   enabled: z.boolean().default(true),
+  kind: z.enum(['reactive', 'auditor']).default('reactive'),
   models: ModelsSchema.optional(),
   project_overrides: z.record(z.string(), ProjectOverrideSchema).optional(),
 });
