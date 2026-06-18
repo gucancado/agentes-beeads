@@ -29,6 +29,19 @@ export async function assembleWorkspaceMemory(db: Queryable, cookie: string, wor
 }
 
 /**
+ * Acesso a UM episódio sem buscar turnos (gate leve p/ download de asset).
+ * Retorna true se o episódio existe e o usuário pertence ao workspace dele.
+ */
+export async function canAccessEpisode(
+  db: Queryable, cookie: string, episodeId: number, deps?: AccessDeps,
+): Promise<boolean> {
+  const meta = await getEpisodeMeta(db, episodeId);
+  if (!meta) return false;
+  const access = await accessibleWorkspaces(cookie, deps);
+  return access.has(meta.workspace_id);
+}
+
+/**
  * Retorna metadados, turnos e nome do workspace de um episódio específico.
  * Retorna null se o episódio não existir ou o usuário não tiver acesso ao workspace.
  */
