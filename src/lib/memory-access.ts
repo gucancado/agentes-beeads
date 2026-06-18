@@ -7,11 +7,11 @@ export type AccessDeps = {
   meAgents(cookie: string): Promise<{ workspaceId: string; workspaceName: string }[]>;
 };
 
-// defaultDeps: importação lazy para evitar que 'server-only' (em bloquim-client.ts)
+// resolveDefaultDeps: dynamic import lazy para evitar que 'server-only' (em bloquim-client.ts)
 // quebre testes unitários que passam suas próprias fakes via parâmetro deps.
-function getDefaultDeps(): AccessDeps {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { meWorkspaces, meAgents } = require('./bloquim-client') as typeof import('./bloquim-client');
+// Usa await import() (ESM idiom) em vez de require(), compatível com Turbopack/ESM.
+async function resolveDefaultDeps(): Promise<AccessDeps> {
+  const { meWorkspaces, meAgents } = await import('./bloquim-client');
   return { meWorkspaces, meAgents };
 }
 
@@ -22,11 +22,12 @@ function getDefaultDeps(): AccessDeps {
  */
 export async function accessibleWorkspaces(
   cookie: string,
-  deps: AccessDeps = getDefaultDeps(),
+  deps?: AccessDeps,
 ): Promise<Map<string, string>> {
+  const d = deps ?? (await resolveDefaultDeps());
   const [wss, agents] = await Promise.all([
-    deps.meWorkspaces(cookie),
-    deps.meAgents(cookie),
+    d.meWorkspaces(cookie),
+    d.meAgents(cookie),
   ]);
   const m = new Map<string, string>();
   // Workspaces diretos têm precedência de nome
@@ -42,7 +43,7 @@ export async function accessibleWorkspaces(
 export async function canAccessWorkspace(
   cookie: string,
   workspaceId: string,
-  deps: AccessDeps = getDefaultDeps(),
+  deps?: AccessDeps,
 ): Promise<boolean> {
   return (await accessibleWorkspaces(cookie, deps)).has(workspaceId);
 }
