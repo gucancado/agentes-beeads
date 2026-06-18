@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getWorkspaceFactRows, getEpisodeTurnRows, type Queryable } from '../src/lib/memory-queries';
+import { getWorkspaceFactRows, getEpisodeTurnRows, getMemoryIndexRows, type Queryable } from '../src/lib/memory-queries';
 
 function fakeDb(rows: any[]): Queryable & { last: { text: string; params: any[] } } {
   const state: any = { last: { text: '', params: [] } };
@@ -21,4 +21,22 @@ test('getEpisodeTurnRows ordena por turn_index', async () => {
   await getEpisodeTurnRows(db, 42);
   assert.deepEqual(db.last.params, [42]);
   assert.match(db.last.text, /ORDER BY turn_index/i);
+});
+
+test('getMemoryIndexRows coage campos bigint de string para number', async () => {
+  // Simula o que o driver pg retorna: counts como strings
+  const db = fakeDb([{
+    workspace_id: 'w',
+    eps_done: '3',
+    eps_total: '5',
+    facts_total: '10',
+    vigentes: '7',
+    supersedidos: '3',
+    needs_review: '2',
+    ultimo_episodio: '2026-01-01T00:00:00Z',
+  }]);
+  const out = await getMemoryIndexRows(db);
+  assert.strictEqual(out[0].eps_done, 3);
+  assert.strictEqual(out[0].needs_review, 2);
+  assert.strictEqual(typeof out[0].facts_total, 'number');
 });

@@ -20,7 +20,7 @@ export function MemoryIndexList({ items }: { items: { workspace_id: string; name
             <div className="flex items-center gap-3 text-sm shrink-0">
               <span title="fatos vigentes">{row.vigentes} vigentes</span>
               <span className="text-muted-fg" title="fatos supersedidos">{row.supersedidos} hist.</span>
-              {Number(row.needs_review) > 0 && <Badge variant="destructive">{row.needs_review} a revisar</Badge>}
+              {row.needs_review > 0 && <Badge variant="destructive">{row.needs_review} a revisar</Badge>}
             </div>
           </Link>
         </li>

@@ -22,7 +22,18 @@ export async function getMemoryIndexRows(db: Queryable): Promise<MemoryIndexRow[
     GROUP BY e.workspace_id
     HAVING count(f.id) > 0 OR count(DISTINCT e.id) FILTER (WHERE lp.status='done') > 0
     ORDER BY facts_total DESC`);
-  return rows as MemoryIndexRow[];
+  // PostgreSQL retorna colunas count()/bigint como strings; coagimos para number aqui
+  // para que toda lógica numérica no resto da aplicação funcione corretamente.
+  return rows.map((r) => ({
+    workspace_id: r.workspace_id,
+    eps_done: Number(r.eps_done),
+    eps_total: Number(r.eps_total),
+    facts_total: Number(r.facts_total),
+    vigentes: Number(r.vigentes),
+    supersedidos: Number(r.supersedidos),
+    needs_review: Number(r.needs_review),
+    ultimo_episodio: r.ultimo_episodio ?? null,
+  }));
 }
 
 // Retorna todos os fatos de um workspace, ordenados por tipo e data.
