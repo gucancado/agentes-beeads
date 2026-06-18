@@ -45,6 +45,12 @@ export function AppSidebar({
           }
         />
         <SidebarBody>
+          <SidebarNavItem
+            label="Memória"
+            title="Memória"
+            active={pathname?.startsWith('/memoria')}
+            render={(props) => <Link href="/memoria" {...props} />}
+          />
           <SidebarSectionLabel>Agentes</SidebarSectionLabel>
           {agents.length === 0 ? (
             <p className="px-3 text-[11px] text-sidebar-foreground/50">
